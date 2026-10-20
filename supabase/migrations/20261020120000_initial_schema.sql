@@ -15,7 +15,6 @@ create type public.coupon_type as enum ('fixed', 'percentage', 'free_shipping');
 create type public.campaign_placement as enum ('announcement', 'hero', 'banner', 'modal');
 
 create or replace function public.set_updated_at() returns trigger language plpgsql as $$ begin new.updated_at = timezone('utc', now()); return new; end; $$;
-create or replace function public.is_admin() returns boolean language sql stable security definer set search_path = public as $$ select exists(select 1 from public.admin_members where user_id = auth.uid() and active = true); $$;
 
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
@@ -27,6 +26,7 @@ create table public.admin_members (
   role public.admin_role not null default 'operator', active boolean not null default true,
   last_seen_at timestamptz, created_at timestamptz not null default timezone('utc', now())
 );
+create or replace function public.is_admin() returns boolean language sql stable security definer set search_path = public as $$ select exists(select 1 from public.admin_members where user_id = auth.uid() and active = true); $$;
 create table public.customer_addresses (
   id uuid primary key default gen_random_uuid(), customer_id uuid not null references public.profiles(id) on delete cascade,
   label text not null default 'Casa', region text not null, commune text not null, street text not null, address_detail text, reference text,
