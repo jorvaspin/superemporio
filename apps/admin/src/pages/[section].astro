@@ -1,0 +1,5 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+const section = Astro.params.section?.replace(/(^|-)\w/g, (letter) => letter.toUpperCase()) ?? 'Configuración';
+---
+<AdminLayout title={section} section={section}><section class="panel"><h2>{section}</h2><p style="color:#607065;line-height:1.6">Esta sección está preparada dentro de la arquitectura. Al conectar Supabase permitirá administrar datos reales con roles, auditoría y validaciones.</p><button class="admin-button">Configurar {section.toLowerCase()}</button></section></AdminLayout>

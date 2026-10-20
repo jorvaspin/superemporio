@@ -1,0 +1,7 @@
+---
+import '../styles/admin.css';
+interface Props { title: string; section?: string; }
+const { title, section = 'Resumen' } = Astro.props;
+const nav = [['Resumen','/'],['Pedidos','/pedidos'],['Productos','/productos'],['Inventario','/inventario'],['Cupones','/cupones'],['Campañas','/campanas'],['Despacho','/despacho'],['Configuración','/configuracion']];
+---
+<!doctype html><html lang="es-CL"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>{title} | Administración Superemporio</title></head><body><div class="admin-shell"><aside class="side"><a class="admin-brand" href="/"><span>S</span> superemporio</a><nav aria-label="Administración">{nav.map(([name, href]) => <a href={href} data-active={name === section}>{name}</a>)}</nav></aside><main class="admin-main"><header class="admin-top"><div><div style="color:#607065;font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em">Administración</div><h1>{section}</h1></div><span class="role">Owner · Demo</span></header><slot /></main></div></body></html>

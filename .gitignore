@@ -1,0 +1,10 @@
+node_modules/
+.rea/
+.env
+.env.*
+!.env.example
+.turbo/
+dist/
+.astro/
+.wrangler/
+supabase/.temp/

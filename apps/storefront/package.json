@@ -1,0 +1,19 @@
+{
+  "name": "@superemporio/storefront",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "dev": "astro dev --port 4321", "build": "astro build", "check": "astro check" },
+  "dependencies": {
+    "@astrojs/cloudflare": "^12.4.0",
+    "@astrojs/react": "^4.2.0",
+    "@nanostores/react": "^0.8.4",
+    "@superemporio/domain": "workspace:*",
+    "@superemporio/ui": "workspace:*",
+    "astro": "^5.5.5",
+    "nanostores": "^0.11.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": { "@astrojs/check": "^0.9.4", "@types/react": "^19.0.10", "@types/react-dom": "^19.0.4", "typescript": "^5.8.2" }
+}

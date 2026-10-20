@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "superemporio-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-03-01",
+  "workers_dev": true,
+  "triggers": { "crons": ["*/5 * * * *"] },
+  "vars": {
+    "PUBLIC_STORE_URL": "http://localhost:4321",
+    "PUBLIC_ADMIN_URL": "http://localhost:4322"
+  }
+}

@@ -1,0 +1,5 @@
+---
+interface Props { emoji: string; tone?: string; class?: string; }
+const { emoji, tone = '#e8f2df', class: className = '' } = Astro.props;
+---
+<div class:list={['product-art', className]} style={`--art-bg:${tone}`} aria-hidden="true"><span>{emoji}</span></div>

@@ -1,0 +1,5 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CheckoutForm from '../components/CheckoutForm';
+---
+<BaseLayout title="Finalizar compra | Superemporio"><section class="page-intro"><div class="container"><div class="breadcrumbs"><a href="/">Inicio</a> / <a href="/carrito">Carrito</a> / Pago</div><h1>Finaliza tu compra</h1><p class="muted">Sin cuentas obligatorias ni costos sorpresa.</p></div></section><main class="container"><CheckoutForm client:load /></main></BaseLayout>

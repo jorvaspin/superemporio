@@ -1,0 +1,5 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+const rows = [['🧻','Papel Higiénico Nova Clásico','NOVA-CLAS-4','38','Activo'],['🍋','Lavalozas Quix Limón','QUIX-LIM-750','44','Activo'],['🌿','Toalla de Papel Nova','NOVA-TOP-2','30','Activo'],['🫧','Jabón Líquido Dove','DOVE-JAB-250','26','Activo']];
+---
+<AdminLayout title="Productos" section="Productos"><section class="panel"><div class="panel-head"><h2>Catálogo</h2><button class="admin-button">+ Nuevo producto</button></div><div class="table-scroll"><table><thead><tr><th>Producto</th><th>SKU</th><th>Stock</th><th>Estado</th><th></th></tr></thead><tbody>{rows.map(([emoji,name,sku,stock,status]) => <tr><td><span class="row-name"><span class="product-thumb">{emoji}</span>{name}</span></td><td>{sku}</td><td>{stock}</td><td><span class="status">{status}</span></td><td><button class="admin-button admin-button--soft">Editar</button></td></tr>)}</tbody></table></div></section><div class="notice-admin">La carga de imágenes aceptará WebP optimizado y generará tamaños responsive al conectar Supabase Storage.</div></AdminLayout>

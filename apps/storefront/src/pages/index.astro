@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProductCard from '../components/ProductCard.astro';
+import { categories, products } from '../data/catalog';
+---
+<BaseLayout title="Superemporio | Lo esencial, a precios que sí convienen" description="Productos de limpieza, papel y cuidado personal para tu hogar.">
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <div class="eyebrow">Tu hogar, bien resuelto</div>
+        <h1>Lo esencial para tu casa, a un precio más justo.</h1>
+        <p class="muted">Papel, limpieza y cuidado diario seleccionados para que compres fácil, ahorres de verdad y recibas cerca de ti.</p>
+        <div class="hero-actions"><a class="button" href="/catalogo">Comprar ahora <span aria-hidden="true">→</span></a><a class="button button--secondary" href="#ofertas">Ver ofertas</a></div>
+        <div class="hero-points"><span>✓ Despacho local</span><span>✓ Retiro disponible</span><span>✓ Compra segura</span></div>
+      </div>
+      <div class="hero-card" aria-label="Productos esenciales para el hogar">
+        <span class="hero-chip">Ahorra en tu compra diaria</span>
+        <div class="hero-shelf"><div class="hero-item" style="--rotate:-4deg">🧻</div><div class="hero-item" style="--rotate:2deg">🫧</div><div class="hero-item" style="--rotate:-1deg">🍋</div></div>
+      </div>
+    </div>
+  </section>
+  <section class="section section--white"><div class="container"><div class="section-heading"><div><div class="eyebrow">Compra por necesidad</div><h2>Todo lo que tu hogar usa.</h2></div><a class="button button--secondary" href="/catalogo">Ver catálogo</a></div><div class="category-grid">{categories.map((category) => <a class="category-card" href={`/catalogo?categoria=${category.slug}`}><div class="category-icon">{category.icon}</div><h3>{category.name}</h3><p class="muted">{category.description}</p></a>)}</div></div></section>
+  <section class="section" id="ofertas"><div class="container"><div class="section-heading"><div><div class="eyebrow">Elegidos para ti</div><h2>Ofertas para ahorrar hoy.</h2><p class="muted">Precios claros, sin letras chicas.</p></div><a href="/catalogo?categoria=ofertas" class="button button--secondary">Todas las ofertas</a></div><div class="product-grid">{products.map((product) => <ProductCard product={product} />)}</div></div></section>
+  <section class="section section--white"><div class="container"><div class="benefit-grid"><article class="benefit"><span aria-hidden="true">🚚</span><strong>Despacho sin enredos</strong><p class="muted">Elige tu comuna y verás el costo antes de pagar.</p></article><article class="benefit"><span aria-hidden="true">🛍️</span><strong>Retira cuando te acomode</strong><p class="muted">Compra online y coordina tu retiro con nosotros.</p></article><article class="benefit"><span aria-hidden="true">💬</span><strong>¿Prefieres WhatsApp?</strong><p class="muted">Armamos tu pedido y te ayudamos personalmente.</p></article></div></div></section>
+  <section class="section"><div class="container"><div class="newsletter"><div><div class="eyebrow" style="color:#b9d8a7">Ofertas reales</div><h2>Recibe descuentos para tu próxima compra.</h2><p>Sin spam. Solo novedades y precios que vale la pena mirar.</p></div><a class="button button--amber" href="/contacto">Quiero enterarme</a></div></div></section>
+</BaseLayout>

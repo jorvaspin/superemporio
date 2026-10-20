@@ -1,0 +1,5 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CartPage from '../components/CartPage';
+---
+<BaseLayout title="Tu carrito | Superemporio"><section class="page-intro"><div class="container"><div class="breadcrumbs"><a href="/">Inicio</a> / Carrito</div><h1>Tu carrito</h1><p class="muted">Estás a pocos pasos de resolver tu compra.</p></div></section><main class="container"><CartPage client:load /></main></BaseLayout>

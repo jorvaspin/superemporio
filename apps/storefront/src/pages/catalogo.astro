@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProductCard from '../components/ProductCard.astro';
+import { categories, products } from '../data/catalog';
+const selected = Astro.url.searchParams.get('categoria');
+const displayed = selected && selected !== 'ofertas' ? products.filter((product) => product.category === selected) : products;
+const heading = categories.find((category) => category.slug === selected)?.name ?? (selected === 'ofertas' ? 'Ofertas' : 'Catálogo');
+---
+<BaseLayout title={`${heading} | Superemporio`}>
+  <section class="page-intro"><div class="container"><div class="breadcrumbs"><a href="/">Inicio</a> / {heading}</div><h1>{heading}</h1><p class="muted">Encuentra esenciales para tu hogar, en formatos que convienen.</p></div></section>
+  <div class="container catalog-layout"><aside class="filters"><strong>Filtrar por</strong><div class="filter-group"><strong>Categoría</strong>{categories.map((category) => <label><input type="checkbox" checked={selected === category.slug} />{category.name}</label>)}</div><div class="filter-group"><strong>Disponibilidad</strong><label><input type="checkbox" /> En stock</label></div><div class="filter-group"><strong>Formato</strong><label><input type="checkbox" /> Packs</label><label><input type="checkbox" /> Unidades</label></div></aside><section><div class="section-heading"><p class="muted">{displayed.length} productos encontrados</p><select aria-label="Ordenar catálogo"><option>Destacados</option><option>Menor precio</option><option>Mayor ahorro</option></select></div><div class="product-grid">{displayed.map((product) => <ProductCard product={product} />)}</div></section></div>
+</BaseLayout>
