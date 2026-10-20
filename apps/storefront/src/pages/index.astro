@@ -1,26 +1,41 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ProductCard from '../components/ProductCard.astro';
-import { categories, products } from '../data/catalog';
+import { products } from '../data/catalog';
+const dealProducts = [...products, ...products].slice(0, 6);
+const categoryLooks = [
+  { icon: '🧻', tone: 'paper', label: 'Papel y cocina', href: '/catalogo?categoria=papel-y-cocina' },
+  { icon: '🫧', tone: 'clean', label: 'Limpieza', href: '/catalogo?categoria=limpieza' },
+  { icon: '🧴', tone: 'care', label: 'Cuidado personal', href: '/catalogo?categoria=aseo-personal' },
+  { icon: '🏷️', tone: 'sale', label: 'Ofertas del día', href: '/catalogo?categoria=ofertas' },
+  { icon: '📦', tone: 'pack', label: 'Packs ahorro', href: '/catalogo' },
+];
 ---
-<BaseLayout title="Superemporio | Lo esencial, a precios que sí convienen" description="Productos de limpieza, papel y cuidado personal para tu hogar.">
-  <section class="hero">
-    <div class="container hero-grid">
-      <div class="hero-copy">
-        <div class="eyebrow">Tu hogar, bien resuelto</div>
-        <h1>Lo esencial para tu casa, a un precio más justo.</h1>
-        <p class="muted">Papel, limpieza y cuidado diario seleccionados para que compres fácil, ahorres de verdad y recibas cerca de ti.</p>
-        <div class="hero-actions"><a class="button" href="/catalogo">Comprar ahora <span aria-hidden="true">→</span></a><a class="button button--secondary" href="#ofertas">Ver ofertas</a></div>
-        <div class="hero-points"><span>✓ Despacho local</span><span>✓ Retiro disponible</span><span>✓ Compra segura</span></div>
+<BaseLayout title="Superemporio | Ahorra en lo esencial para tu hogar" description="Ofertas en papel, limpieza y cuidado diario para tu hogar.">
+  <section class="hero-sale">
+    <div class="container hero-sale__grid">
+      <div class="hero-sale__copy">
+        <span class="sale-pill">OFERTAS QUE SÍ CONVIENEN</span>
+        <p class="hero-sale__kicker">Tu compra diaria, más simple</p>
+        <h1>Más ahorro para<br /><em>tu casa.</em></h1>
+        <p>Encuentra papel, limpieza y productos esenciales con precios claros, packs convenientes y despacho local.</p>
+        <div class="hero-actions"><a class="button button--coral" href="#ofertas">Ver ofertas de hoy <span aria-hidden="true">→</span></a><a class="hero-link" href="/catalogo">Explorar todo el catálogo</a></div>
       </div>
-      <div class="hero-card" aria-label="Productos esenciales para el hogar">
-        <span class="hero-chip">Ahorra en tu compra diaria</span>
-        <div class="hero-shelf"><div class="hero-item" style="--rotate:-4deg">🧻</div><div class="hero-item" style="--rotate:2deg">🫧</div><div class="hero-item" style="--rotate:-1deg">🍋</div></div>
+      <div class="hero-sale__visual" aria-label="Ofertas de papel, limpieza y cuidado diario">
+        <span class="floating-tag floating-tag--top">Hasta <b>20% OFF</b></span><div class="hero-sale__blob"></div>
+        <div class="hero-product hero-product--paper">🧻<small>Nova</small></div><div class="hero-product hero-product--clean">🫧<small>Hogar</small></div><div class="hero-product hero-product--care">🧴<small>Cuidado</small></div>
+        <span class="floating-tag floating-tag--bottom">🚚 Despacho y retiro</span>
       </div>
     </div>
   </section>
-  <section class="section section--white"><div class="container"><div class="section-heading"><div><div class="eyebrow">Compra por necesidad</div><h2>Todo lo que tu hogar usa.</h2></div><a class="button button--secondary" href="/catalogo">Ver catálogo</a></div><div class="category-grid">{categories.map((category) => <a class="category-card" href={`/catalogo?categoria=${category.slug}`}><div class="category-icon">{category.icon}</div><h3>{category.name}</h3><p class="muted">{category.description}</p></a>)}</div></div></section>
-  <section class="section" id="ofertas"><div class="container"><div class="section-heading"><div><div class="eyebrow">Elegidos para ti</div><h2>Ofertas para ahorrar hoy.</h2><p class="muted">Precios claros, sin letras chicas.</p></div><a href="/catalogo?categoria=ofertas" class="button button--secondary">Todas las ofertas</a></div><div class="product-grid">{products.map((product) => <ProductCard product={product} />)}</div></div></section>
-  <section class="section section--white"><div class="container"><div class="benefit-grid"><article class="benefit"><span aria-hidden="true">🚚</span><strong>Despacho sin enredos</strong><p class="muted">Elige tu comuna y verás el costo antes de pagar.</p></article><article class="benefit"><span aria-hidden="true">🛍️</span><strong>Retira cuando te acomode</strong><p class="muted">Compra online y coordina tu retiro con nosotros.</p></article><article class="benefit"><span aria-hidden="true">💬</span><strong>¿Prefieres WhatsApp?</strong><p class="muted">Armamos tu pedido y te ayudamos personalmente.</p></article></div></div></section>
-  <section class="section"><div class="container"><div class="newsletter"><div><div class="eyebrow" style="color:#b9d8a7">Ofertas reales</div><h2>Recibe descuentos para tu próxima compra.</h2><p>Sin spam. Solo novedades y precios que vale la pena mirar.</p></div><a class="button button--amber" href="/contacto">Quiero enterarme</a></div></div></section>
+  <section class="confidence-strip" aria-label="Beneficios de Superemporio"><div class="container confidence-strip__grid">
+    <div><span>🚚</span><p><b>Despacho local</b><small>Revisa cobertura por comuna</small></p></div><div><span>🏷️</span><p><b>Ofertas todos los días</b><small>Ahorra en lo esencial</small></p></div><div><span>🛍️</span><p><b>Retiro disponible</b><small>Coordina por WhatsApp</small></p></div><div><span>🔒</span><p><b>Compra segura</b><small>Precios claros y sin sorpresas</small></p></div>
+  </div></section>
+  <section class="section section--white home-categories"><div class="container"><div class="home-title"><div><span class="eyebrow">Compra fácil</span><h2>Encuentra lo que necesitas</h2></div><a href="/catalogo">Ver todas las categorías →</a></div><div class="category-orbits">{categoryLooks.map((category) => <a class={`category-orbit category-orbit--${category.tone}`} href={category.href}><span>{category.icon}</span><strong>{category.label}</strong></a>)}</div></div></section>
+  <section class="section home-promos"><div class="container promo-grid">
+    <a class="promo-card promo-card--teal" href="/catalogo?categoria=papel-y-cocina"><div><span>PACKS PARA TU HOGAR</span><h2>Papel que rinde<br />más días.</h2><b>Ver packs →</b></div><i>🧻</i></a><a class="promo-card promo-card--yellow" href="/catalogo?categoria=limpieza"><div><span>PRECIO ESPECIAL</span><h2>Limpieza para<br />cada rincón.</h2><b>Comprar ahora →</b></div><i>🫧</i></a><a class="promo-card promo-card--coral" href="/catalogo?categoria=aseo-personal"><div><span>ELIGE BIEN, AHORRA MÁS</span><h2>Cuidado diario<br />a buen precio.</h2><b>Descubrir →</b></div><i>🧴</i></a>
+  </div></section>
+  <section class="section deal-section" id="ofertas"><div class="container"><div class="home-title home-title--deal"><div><span class="eyebrow">🔥 Precio especial</span><h2>Ofertas para hoy</h2><p class="muted">Favoritos para resolver la compra del mes.</p></div><div class="deal-clock"><b>Termina pronto</b><span>12 : 24 : 08</span></div></div><div class="deal-grid">{dealProducts.map((product, index) => <div class="deal-grid__item" data-duplicate={index >= products.length ? 'true' : undefined}><ProductCard product={product} /></div>)}</div><div class="center-action"><a class="button button--teal" href="/catalogo?categoria=ofertas">Ver todas las ofertas</a></div></div></section>
+  <section class="section section--white"><div class="container"><div class="home-title"><div><span class="eyebrow">Favoritos de la casa</span><h2>Lo más buscado esta semana</h2></div><a href="/catalogo">Ver catálogo →</a></div><div class="product-grid">{products.map((product) => <ProductCard product={product} />)}</div></div></section>
+  <section class="section"><div class="container"><div class="newsletter newsletter--bright"><div><div class="eyebrow" style="color:#fff1a8">Club Superemporio</div><h2>Recibe ofertas antes que todos.</h2><p>Descuentos reales, packs y novedades para tu hogar.</p></div><a class="button button--yellow" href="/contacto">Quiero enterarme</a></div></div></section>
 </BaseLayout>

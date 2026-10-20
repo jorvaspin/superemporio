@@ -4,12 +4,10 @@ import CartButton from './CartButton';
 <div class="topbar">Despacho local y retiro · Compra seguro y ahorra en lo esencial</div>
 <header class="site-header">
   <nav class="container nav" aria-label="Navegación principal">
-    <a class="brand" href="/" aria-label="Superemporio, inicio"><span class="brand-mark">S</span> superemporio</a>
+    <a class="brand" href="/" aria-label="Superemporio, inicio"><img src="/brand/superemporio-logo.png" alt="superemporio.cl" /></a>
+    <form class="site-search" action="/catalogo" role="search"><label class="sr-only" for="site-search">Buscar en Superemporio</label><input id="site-search" name="q" placeholder="¿Qué estás buscando?" /><button type="submit" aria-label="Buscar">⌕</button></form>
     <div class="nav-links">
-      <a href="/catalogo">Comprar</a>
-      <a href="/catalogo?categoria=ofertas">Ofertas</a>
-      <a href="/despacho">Despacho</a>
-      <a href="/contacto">Ayuda</a>
+      <a href="/catalogo">Categorías</a><a href="/catalogo?categoria=ofertas">🔥 Ofertas</a><a href="/catalogo">Packs ahorro</a><a href="/despacho">Despacho</a>
     </div>
     <div class="nav-actions">
       <a class="icon-button" href="/cuenta" aria-label="Mi cuenta">♙</a>
