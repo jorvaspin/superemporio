@@ -1,37 +1,56 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ProductCard from '../components/ProductCard.astro';
-import { products } from '../data/catalog';
-const dealProducts = [...products, ...products].slice(0, 6);
+import { categories, products } from '../data/catalog';
+const dealProducts = products.filter((product) => product.variants.some((variant) => variant.compareAtPrice)).slice(0, 6);
 const categoryLooks = [
-  { icon: '🧻', tone: 'paper', label: 'Papel y cocina', href: '/catalogo?categoria=papel-y-cocina' },
-  { icon: '🫧', tone: 'clean', label: 'Limpieza', href: '/catalogo?categoria=limpieza' },
-  { icon: '🧴', tone: 'care', label: 'Cuidado personal', href: '/catalogo?categoria=aseo-personal' },
-  { icon: '🏷️', tone: 'sale', label: 'Ofertas del día', href: '/catalogo?categoria=ofertas' },
-  { icon: '📦', tone: 'pack', label: 'Packs ahorro', href: '/catalogo' },
+  { icon: '🧻', tone: 'paper', label: 'Papel y cocina', copy: 'Rollos, toallas, servilletas y más', href: '/catalogo?categoria=papel-y-cocina', productCount: products.filter((product) => product.category === 'papel-y-cocina').length },
+  { icon: '✨', tone: 'clean', label: 'Limpieza para el hogar', copy: 'Detergentes, lavalozas y accesorios', href: '/catalogo?categoria=limpieza', productCount: products.filter((product) => product.category === 'limpieza').length },
+  { icon: '🫧', tone: 'care', label: 'Cuidado personal', copy: 'Higiene y cuidado diario familiar', href: '/catalogo?categoria=aseo-personal', productCount: products.filter((product) => product.category === 'aseo-personal').length },
 ];
+const fallbackHeroCampaign = {
+  imagePath: '/campaigns/hero-household-offers.jpg',
+  eyebrow: 'OFERTAS QUE SÍ CONVIENEN',
+  kicker: 'Tu compra diaria, más simple',
+  title: 'Más ahorro para',
+  emphasis: 'tu casa.',
+  copy: 'Encuentra papel, limpieza y productos esenciales con precios claros, packs convenientes y despacho local.',
+};
+let heroCampaign = fallbackHeroCampaign;
+const apiUrl = import.meta.env.PUBLIC_API_URL?.replace(/\/$/, '');
+if (apiUrl) {
+  try {
+    const response = await fetch(`${apiUrl}/content/campaigns?placement=hero`);
+    const payload = response.ok ? await response.json() as { data?: Array<{ title: string; body: string | null; image_path: string | null }> } : null;
+    const activeCampaign = payload?.data?.[0];
+    if (activeCampaign) heroCampaign = {
+      ...fallbackHeroCampaign,
+      title: activeCampaign.title,
+      emphasis: '',
+      copy: activeCampaign.body ?? fallbackHeroCampaign.copy,
+      imagePath: activeCampaign.image_path ?? fallbackHeroCampaign.imagePath,
+    };
+  } catch {
+    // La portada mantiene la campaña local si la API aún no está disponible.
+  }
+}
 ---
 <BaseLayout title="Superemporio | Ahorra en lo esencial para tu hogar" description="Ofertas en papel, limpieza y cuidado diario para tu hogar.">
-  <section class="hero-sale">
+  <section class="hero-sale hero-sale--image" style={`--hero-image: url('${heroCampaign.imagePath}')`}>
     <div class="container hero-sale__grid">
       <div class="hero-sale__copy">
-        <span class="sale-pill">OFERTAS QUE SÍ CONVIENEN</span>
-        <p class="hero-sale__kicker">Tu compra diaria, más simple</p>
-        <h1>Más ahorro para<br /><em>tu casa.</em></h1>
-        <p>Encuentra papel, limpieza y productos esenciales con precios claros, packs convenientes y despacho local.</p>
+        <span class="sale-pill">{heroCampaign.eyebrow}</span>
+        <p class="hero-sale__kicker">{heroCampaign.kicker}</p>
+        <h1>{heroCampaign.title}{heroCampaign.emphasis && <><br /><em>{heroCampaign.emphasis}</em></>}</h1>
+        <p>{heroCampaign.copy}</p>
         <div class="hero-actions"><a class="button button--coral" href="#ofertas">Ver ofertas de hoy <span aria-hidden="true">→</span></a><a class="hero-link" href="/catalogo">Explorar todo el catálogo</a></div>
-      </div>
-      <div class="hero-sale__visual" aria-label="Ofertas de papel, limpieza y cuidado diario">
-        <span class="floating-tag floating-tag--top">Hasta <b>20% OFF</b></span><div class="hero-sale__blob"></div>
-        <div class="hero-product hero-product--paper">🧻<small>Nova</small></div><div class="hero-product hero-product--clean">🫧<small>Hogar</small></div><div class="hero-product hero-product--care">🧴<small>Cuidado</small></div>
-        <span class="floating-tag floating-tag--bottom">🚚 Despacho y retiro</span>
       </div>
     </div>
   </section>
   <section class="confidence-strip" aria-label="Beneficios de Superemporio"><div class="container confidence-strip__grid">
     <div><span>🚚</span><p><b>Despacho local</b><small>Revisa cobertura por comuna</small></p></div><div><span>🏷️</span><p><b>Ofertas todos los días</b><small>Ahorra en lo esencial</small></p></div><div><span>🛍️</span><p><b>Retiro disponible</b><small>Coordina por WhatsApp</small></p></div><div><span>🔒</span><p><b>Compra segura</b><small>Precios claros y sin sorpresas</small></p></div>
   </div></section>
-  <section class="section section--white home-categories"><div class="container"><div class="home-title"><div><span class="eyebrow">Compra fácil</span><h2>Encuentra lo que necesitas</h2></div><a href="/catalogo">Ver todas las categorías →</a></div><div class="category-orbits">{categoryLooks.map((category) => <a class={`category-orbit category-orbit--${category.tone}`} href={category.href}><span>{category.icon}</span><strong>{category.label}</strong></a>)}</div></div></section>
+  <section class="section section--white home-categories"><div class="container"><div class="home-title"><div><span class="eyebrow">Compra fácil</span><h2>Encuentra lo que necesitas</h2><p class="muted">Elige una categoría y descubre formatos, packs y precios para resolver tu compra.</p></div><a href="/catalogo">Ver todas las categorías →</a></div><div class="category-showcase">{categoryLooks.map((category) => <a class={`category-showcase__card category-showcase__card--${category.tone}`} href={category.href}><div><span class="category-showcase__count">{category.productCount} productos</span><h3>{category.label}</h3><p>{category.copy}</p><b>Ver categoría <span aria-hidden="true">→</span></b></div><span class="category-showcase__icon" aria-hidden="true">{category.icon}</span></a>)}<a class="category-showcase__card category-showcase__card--sale" href="/catalogo?categoria=ofertas"><div><span class="category-showcase__count">Precios especiales</span><h3>Ofertas de la semana</h3><p>Productos seleccionados para ahorrar más.</p><b>Ver ofertas <span aria-hidden="true">→</span></b></div><span class="category-showcase__icon" aria-hidden="true">🏷️</span></a></div><div class="category-quick-links" aria-label="Categorías rápidas">{categories.slice(0, 3).map((category) => <a href={`/catalogo?categoria=${category.slug}`}><span>{category.icon}</span>{category.name}</a>)}</div></div></section>
   <section class="section home-promos"><div class="container promo-grid">
     <a class="promo-card promo-card--teal" href="/catalogo?categoria=papel-y-cocina"><div><span>PACKS PARA TU HOGAR</span><h2>Papel que rinde<br />más días.</h2><b>Ver packs →</b></div><i>🧻</i></a><a class="promo-card promo-card--yellow" href="/catalogo?categoria=limpieza"><div><span>PRECIO ESPECIAL</span><h2>Limpieza para<br />cada rincón.</h2><b>Comprar ahora →</b></div><i>🫧</i></a><a class="promo-card promo-card--coral" href="/catalogo?categoria=aseo-personal"><div><span>ELIGE BIEN, AHORRA MÁS</span><h2>Cuidado diario<br />a buen precio.</h2><b>Descubrir →</b></div><i>🧴</i></a>
   </div></section>

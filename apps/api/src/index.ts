@@ -53,6 +53,29 @@ app.get('/catalog/search', async (context) => {
   return context.json({ data });
 });
 
+const campaignPlacementSchema = z.enum(['announcement', 'hero', 'banner', 'modal']);
+const campaignSchema = z.object({
+  placement: campaignPlacementSchema,
+  title: z.string().trim().min(3).max(160),
+  body: z.string().trim().max(600).nullable().optional(),
+  imagePath: z.string().trim().max(500).nullable().optional(),
+  linkUrl: z.string().trim().max(500).nullable().optional(),
+  startsAt: z.string().datetime().nullable().optional(),
+  endsAt: z.string().datetime().nullable().optional(),
+  priority: z.number().int().min(-100).max(100).default(0),
+  active: z.boolean().default(true),
+});
+
+app.get('/content/campaigns', async (context) => {
+  const placement = context.req.query('placement');
+  const validatedPlacement = placement ? campaignPlacementSchema.safeParse(placement) : null;
+  if (validatedPlacement && !validatedPlacement.success) return context.json({ error: 'INVALID_PLACEMENT' }, 422);
+  const { data, error } = await createPublicClient(context.env).from('campaigns').select('id,placement,title,body,image_path,link_url,starts_at,ends_at,priority').order('priority', { ascending: false });
+  if (error) return context.json({ error: 'CAMPAIGNS_UNAVAILABLE' }, 503);
+  const filtered = validatedPlacement?.data ? data.filter((campaign) => campaign.placement === validatedPlacement.data) : data;
+  return context.json({ data: filtered });
+});
+
 const cartSchema = z.object({ items: z.array(cartItemSchema).min(1), cartToken: z.string().min(24).max(120).optional() });
 const cartTokenSchema = z.string().min(24).max(120);
 app.post('/carts', async (context) => {
@@ -147,6 +170,46 @@ app.get('/admin/campaigns', async (context) => {
   if (!await requireAdmin(context)) return context.json({ error: 'UNAUTHORIZED' }, 401);
   const { data, error } = await createAdminClient(context.env).from('campaigns').select('*').order('priority', { ascending: false });
   return error ? context.json({ error: 'CAMPAIGNS_UNAVAILABLE' }, 503) : context.json({ data });
+});
+app.post('/admin/campaigns', zValidator('json', campaignSchema), async (context) => {
+  if (!await requireAdmin(context)) return context.json({ error: 'UNAUTHORIZED' }, 401);
+  const input = context.req.valid('json');
+  const { data, error } = await createAdminClient(context.env).from('campaigns').insert({
+    placement: input.placement, title: input.title, body: input.body ?? null, image_path: input.imagePath ?? null,
+    link_url: input.linkUrl ?? null, starts_at: input.startsAt ?? null, ends_at: input.endsAt ?? null,
+    priority: input.priority, active: input.active,
+  }).select().single();
+  return error ? context.json({ error: 'CAMPAIGN_CREATE_FAILED' }, 422) : context.json({ data }, 201);
+});
+app.post('/admin/campaign-assets', async (context) => {
+  if (!await requireAdmin(context)) return context.json({ error: 'UNAUTHORIZED' }, 401);
+  const form = await context.req.formData();
+  const file = form.get('file');
+  if (!(file instanceof File) || file.size === 0 || file.size > 5 * 1024 * 1024) return context.json({ error: 'INVALID_ASSET' }, 422);
+  const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+  if (!allowedTypes.has(file.type)) return context.json({ error: 'UNSUPPORTED_ASSET_TYPE' }, 422);
+  const extension = file.type === 'image/jpeg' ? 'jpg' : file.type.split('/')[1];
+  const path = `hero/${crypto.randomUUID()}.${extension}`;
+  const database = createAdminClient(context.env);
+  const { error } = await database.storage.from('campaign-assets').upload(path, file, { contentType: file.type, upsert: false });
+  if (error) return context.json({ error: 'ASSET_UPLOAD_FAILED' }, 422);
+  const { data } = database.storage.from('campaign-assets').getPublicUrl(path);
+  return context.json({ data: { path, publicUrl: data.publicUrl } }, 201);
+});
+app.put('/admin/campaigns/:id', zValidator('json', campaignSchema.partial()), async (context) => {
+  if (!await requireAdmin(context)) return context.json({ error: 'UNAUTHORIZED' }, 401);
+  const id = z.string().uuid().safeParse(context.req.param('id'));
+  if (!id.success) return context.json({ error: 'INVALID_CAMPAIGN' }, 422);
+  const input = context.req.valid('json');
+  const update = {
+    ...(input.placement ? { placement: input.placement } : {}), ...(input.title ? { title: input.title } : {}),
+    ...(input.body !== undefined ? { body: input.body } : {}), ...(input.imagePath !== undefined ? { image_path: input.imagePath } : {}),
+    ...(input.linkUrl !== undefined ? { link_url: input.linkUrl } : {}), ...(input.startsAt !== undefined ? { starts_at: input.startsAt } : {}),
+    ...(input.endsAt !== undefined ? { ends_at: input.endsAt } : {}), ...(input.priority !== undefined ? { priority: input.priority } : {}),
+    ...(input.active !== undefined ? { active: input.active } : {}),
+  };
+  const { data, error } = await createAdminClient(context.env).from('campaigns').update(update).eq('id', id.data).select().single();
+  return error ? context.json({ error: 'CAMPAIGN_UPDATE_FAILED' }, 422) : context.json({ data });
 });
 app.get('/admin/settings', async (context) => {
   if (!await requireAdmin(context)) return context.json({ error: 'UNAUTHORIZED' }, 401);

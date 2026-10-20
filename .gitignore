@@ -7,4 +7,5 @@ node_modules/
 dist/
 .astro/
 .wrangler/
+apps/api/.dev.vars
 supabase/.temp/
