@@ -12,7 +12,18 @@ import type { Env } from './types';
 const app = new Hono<{ Bindings: Env }>().basePath('/v1');
 type ApiContext = Context<{ Bindings: Env }>;
 type AdminSession = { id: string; role: 'owner' | 'operator' };
-app.use('*', cors({ origin: (origin, context) => [context.env.PUBLIC_STORE_URL, context.env.PUBLIC_ADMIN_URL].includes(origin) ? origin : context.env.PUBLIC_STORE_URL, credentials: true }));
+app.use('*', cors({
+  origin: (origin, context) => {
+    const configured = [context.env.PUBLIC_STORE_URL, context.env.PUBLIC_ADMIN_URL].filter(Boolean);
+    if (configured.includes(origin)) return origin;
+    try {
+      const url = new URL(origin);
+      if (['localhost', '127.0.0.1'].includes(url.hostname) && ['4321', '4322'].includes(url.port)) return origin;
+    } catch { /* Invalid origins are rejected below. */ }
+    return '';
+  },
+  credentials: true,
+}));
 app.get('/health', (context) => context.json({ ok: true, service: 'superemporio-api' }));
 
 async function sha256(value: string) {

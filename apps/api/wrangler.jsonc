@@ -6,7 +6,7 @@
   "workers_dev": true,
   "triggers": { "crons": ["*/5 * * * *"] },
   "vars": {
-    "PUBLIC_STORE_URL": "http://localhost:4321",
-    "PUBLIC_ADMIN_URL": "http://localhost:4322"
+    "PUBLIC_STORE_URL": "http://127.0.0.1:4321",
+    "PUBLIC_ADMIN_URL": "http://127.0.0.1:4322"
   }
 }

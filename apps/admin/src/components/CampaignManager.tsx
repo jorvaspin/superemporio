@@ -46,7 +46,7 @@ export function CampaignManager({ apiUrl, supabaseUrl, anonKey }: { apiUrl: stri
   };
 
   useEffect(() => {
-    restoreAdminToken().then((savedToken) => { setToken(savedToken); return loadCampaigns(savedToken); }).then(() => setMessage('Sesión activa. Puedes editar y publicar la campaña.')).catch(() => { window.location.assign('/login'); });
+    restoreAdminToken().then(async (savedToken) => { setToken(savedToken); try { await loadCampaigns(savedToken); setMessage('Sesión activa. Puedes editar y publicar la campaña.'); } catch { setMessage('No fue posible conectar con la API. Verifica que esté levantada en el puerto 8787.'); } }).catch(() => { window.location.assign('/login'); });
   }, []);
 
   const login = async (event: SyntheticEvent<HTMLFormElement>) => {
