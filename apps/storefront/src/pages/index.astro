@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import HeroCarousel from '../components/HeroCarousel.astro';
 import ProductCard from '../components/ProductCard.astro';
 import { categories, products } from '../data/catalog';
 const dealProducts = products.filter((product) => product.variants.some((variant) => variant.compareAtPrice)).slice(0, 6);
@@ -8,45 +9,30 @@ const categoryLooks = [
   { icon: '✨', tone: 'clean', label: 'Limpieza para el hogar', copy: 'Detergentes, lavalozas y accesorios', href: '/catalogo?categoria=limpieza', productCount: products.filter((product) => product.category === 'limpieza').length },
   { icon: '🫧', tone: 'care', label: 'Cuidado personal', copy: 'Higiene y cuidado diario familiar', href: '/catalogo?categoria=aseo-personal', productCount: products.filter((product) => product.category === 'aseo-personal').length },
 ];
-const fallbackHeroCampaign = {
-  imagePath: '/campaigns/hero-household-offers.jpg',
-  eyebrow: 'OFERTAS QUE SÍ CONVIENEN',
-  kicker: 'Tu compra diaria, más simple',
-  title: 'Más ahorro para',
-  emphasis: 'tu casa.',
-  copy: 'Encuentra papel, limpieza y productos esenciales con precios claros, packs convenientes y despacho local.',
-};
-let heroCampaign = fallbackHeroCampaign;
+const fallbackHeroCampaigns = [
+  { id: 'fallback-household', imagePath: '/campaigns/hero-household-offers.jpg', title: 'Más ahorro para tu casa.', body: 'Encuentra papel, limpieza y productos esenciales con precios claros, packs convenientes y despacho local.', linkUrl: '#ofertas', eyebrow: 'OFERTAS QUE SÍ CONVIENEN' },
+  { id: 'fallback-packs', imagePath: '/campaigns/hero-pack-ahorro.jpg', title: 'Packs que rinden más.', body: 'Abastece tu hogar con papel, toallas y esenciales pensados para ahorrar todos los días.', linkUrl: '/catalogo?categoria=papel-y-cocina', eyebrow: 'PACKS AHORRO' },
+  { id: 'fallback-cleaning', imagePath: '/campaigns/hero-limpieza-fresca.jpg', title: 'Una casa fresca, todos los días.', body: 'Soluciones de limpieza para cada rincón, con precios especiales esta semana.', linkUrl: '/catalogo?categoria=limpieza', eyebrow: 'LIMPIEZA PARA EL HOGAR' },
+];
+let heroCampaigns = fallbackHeroCampaigns;
 const apiUrl = import.meta.env.PUBLIC_API_URL?.replace(/\/$/, '');
 if (apiUrl) {
   try {
     const response = await fetch(`${apiUrl}/content/campaigns?placement=hero`);
-    const payload = response.ok ? await response.json() as { data?: Array<{ title: string; body: string | null; image_path: string | null }> } : null;
-    const activeCampaign = payload?.data?.[0];
-    if (activeCampaign) heroCampaign = {
-      ...fallbackHeroCampaign,
-      title: activeCampaign.title,
-      emphasis: '',
-      copy: activeCampaign.body ?? fallbackHeroCampaign.copy,
-      imagePath: activeCampaign.image_path ?? fallbackHeroCampaign.imagePath,
-    };
+    const payload = response.ok ? await response.json() as { data?: Array<{ id: string; title: string; body: string | null; image_path: string | null; link_url: string | null }> } : null;
+    if (payload?.data?.length) heroCampaigns = payload.data.map((campaign, index) => ({
+      id: campaign.id, title: campaign.title, body: campaign.body ?? fallbackHeroCampaigns[index]?.body ?? '',
+      imagePath: campaign.image_path ?? fallbackHeroCampaigns[index]?.imagePath ?? fallbackHeroCampaigns[0]!.imagePath,
+      linkUrl: campaign.link_url ?? fallbackHeroCampaigns[index]?.linkUrl ?? '/catalogo',
+      eyebrow: index === 0 ? 'OFERTAS QUE SÍ CONVIENEN' : index === 1 ? 'PACKS AHORRO' : 'LIMPIEZA PARA EL HOGAR',
+    }));
   } catch {
     // La portada mantiene la campaña local si la API aún no está disponible.
   }
 }
 ---
 <BaseLayout title="Superemporio | Ahorra en lo esencial para tu hogar" description="Ofertas en papel, limpieza y cuidado diario para tu hogar.">
-  <section class="hero-sale hero-sale--image" style={`--hero-image: url('${heroCampaign.imagePath}')`}>
-    <div class="container hero-sale__grid">
-      <div class="hero-sale__copy">
-        <span class="sale-pill">{heroCampaign.eyebrow}</span>
-        <p class="hero-sale__kicker">{heroCampaign.kicker}</p>
-        <h1>{heroCampaign.title}{heroCampaign.emphasis && <><br /><em>{heroCampaign.emphasis}</em></>}</h1>
-        <p>{heroCampaign.copy}</p>
-        <div class="hero-actions"><a class="button button--coral" href="#ofertas">Ver ofertas de hoy <span aria-hidden="true">→</span></a><a class="hero-link" href="/catalogo">Explorar todo el catálogo</a></div>
-      </div>
-    </div>
-  </section>
+  <HeroCarousel campaigns={heroCampaigns} />
   <section class="confidence-strip" aria-label="Beneficios de Superemporio"><div class="container confidence-strip__grid">
     <div><span>🚚</span><p><b>Despacho local</b><small>Revisa cobertura por comuna</small></p></div><div><span>🏷️</span><p><b>Ofertas todos los días</b><small>Ahorra en lo esencial</small></p></div><div><span>🛍️</span><p><b>Retiro disponible</b><small>Coordina por WhatsApp</small></p></div><div><span>🔒</span><p><b>Compra segura</b><small>Precios claros y sin sorpresas</small></p></div>
   </div></section>

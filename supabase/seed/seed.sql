@@ -27,3 +27,4 @@ insert into public.inventory(variant_id,available_quantity,low_stock_threshold) 
 ('3275d0e8-8cf2-4f06-84af-7205f32ac101',38,5),('3275d0e8-8cf2-4f06-84af-7205f32ac102',21,5),('8a7d7b12-a60f-4d44-acb0-e4c7b85cc201',44,5),('8a7d7b12-a60f-4d44-acb0-e4c7b85cc202',18,5),('900c7a12-a60f-4d44-acb0-e4c7b85cc301',30,5),('900c7a12-a60f-4d44-acb0-e4c7b85cc302',15,5),('aa0c7a12-a60f-4d44-acb0-e4c7b85cc401',26,5) on conflict(variant_id) do nothing;
 
 \ir 20261020_catalog-expansion.sql
+\ir 20261020_hero_carousel.sql

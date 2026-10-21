@@ -1,0 +1,55 @@
+---
+type HeroCampaign = {
+  id: string;
+  title: string;
+  body: string;
+  imagePath: string;
+  linkUrl: string;
+  eyebrow?: string;
+};
+
+interface Props { campaigns: HeroCampaign[]; }
+const { campaigns } = Astro.props;
+---
+<section class="hero-carousel" data-hero-carousel aria-roledescription="carrusel" aria-label="Ofertas destacadas">
+  {campaigns.map((campaign, index) => <article class="hero-carousel__slide" data-hero-slide data-active={index === 0 ? 'true' : 'false'} aria-hidden={index === 0 ? 'false' : 'true'} inert={index === 0 ? undefined : true} style={`--hero-image: url('${campaign.imagePath}')`}>
+    <div class="container hero-carousel__grid">
+      <div class="hero-carousel__copy">
+        <span class="sale-pill">{campaign.eyebrow ?? 'OFERTAS QUE SÍ CONVIENEN'}</span>
+        <p class="hero-carousel__kicker">Compra inteligente para tu hogar</p>
+        <h1>{campaign.title}</h1>
+        <p>{campaign.body}</p>
+        <div class="hero-actions"><a class="button button--coral" href={campaign.linkUrl}>Ver oferta <span aria-hidden="true">→</span></a><a class="hero-link" href="/catalogo">Explorar todo el catálogo</a></div>
+      </div>
+    </div>
+  </article>)}
+  {campaigns.length > 1 && <div class="container hero-carousel__controls"><div class="hero-carousel__arrows"><button type="button" class="hero-carousel__arrow" data-hero-prev aria-label="Ver campaña anterior">←</button><button type="button" class="hero-carousel__arrow" data-hero-next aria-label="Ver campaña siguiente">→</button></div><div class="hero-carousel__dots" role="tablist" aria-label="Seleccionar campaña">{campaigns.map((campaign, index) => <button type="button" role="tab" aria-label={`Ver campaña ${index + 1}: ${campaign.title}`} aria-selected={index === 0 ? 'true' : 'false'} data-hero-dot data-index={index}></button>)}</div></div>}
+</section>
+
+<script>
+  const carousels = document.querySelectorAll<HTMLElement>('[data-hero-carousel]');
+  for (const carousel of carousels) {
+    const slides = Array.from(carousel.querySelectorAll<HTMLElement>('[data-hero-slide]'));
+    const dots = Array.from(carousel.querySelectorAll<HTMLButtonElement>('[data-hero-dot]'));
+    const previous = carousel.querySelector<HTMLButtonElement>('[data-hero-prev]');
+    const next = carousel.querySelector<HTMLButtonElement>('[data-hero-next]');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let activeIndex = 0;
+    let interval: number | undefined;
+
+    const show = (index: number) => {
+      activeIndex = (index + slides.length) % slides.length;
+      slides.forEach((slide, slideIndex) => { const active = slideIndex === activeIndex; slide.dataset.active = String(active); slide.setAttribute('aria-hidden', String(!active)); slide.inert = !active; });
+      dots.forEach((dot, dotIndex) => dot.setAttribute('aria-selected', String(dotIndex === activeIndex)));
+    };
+    const stop = () => { if (interval) window.clearInterval(interval); interval = undefined; };
+    const start = () => { if (!reducedMotion && slides.length > 1) { stop(); interval = window.setInterval(() => show(activeIndex + 1), 6500); } };
+
+    previous?.addEventListener('click', () => { show(activeIndex - 1); start(); });
+    next?.addEventListener('click', () => { show(activeIndex + 1); start(); });
+    dots.forEach((dot) => dot.addEventListener('click', () => { show(Number(dot.dataset.index)); start(); }));
+    carousel.addEventListener('mouseenter', stop); carousel.addEventListener('mouseleave', start);
+    carousel.addEventListener('focusin', stop); carousel.addEventListener('focusout', (event) => { if (!carousel.contains(event.relatedTarget as Node)) start(); });
+    start();
+  }
+</script>
