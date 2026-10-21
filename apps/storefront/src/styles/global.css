@@ -82,9 +82,21 @@ h2 { font-size: clamp(1.75rem, 3vw, 2.5rem); letter-spacing: -.045em; margin-bot
 .breadcrumbs { color: var(--muted); font-size: .8rem; margin-bottom: .85rem; }
 .catalog-layout { display: grid; gap: 1.5rem; grid-template-columns: 230px 1fr; padding: 2.5rem 0 5rem; }
 .filters { align-self: start; background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 1.1rem; position: sticky; top: 92px; }
-.filter-group { border-top: 1px solid var(--line); margin-top: 1rem; padding-top: 1rem; }
-.filter-group label { display: block; font-size: .85rem; margin: .65rem 0; }
-.filter-group input { margin-right: .5rem; }
+.filter-form { min-width: 0; }
+.filter-group { border: 0; border-top: 1px solid var(--line); margin: 1rem 0 0; min-width: 0; padding: 1rem 0 0; }
+.filter-group legend { font-weight: 800; padding: 0; }
+.filter-group label { align-items: center; cursor: pointer; display: flex; font-size: .85rem; gap: .5rem; margin: .65rem 0; min-height: 28px; }
+.filter-group input { accent-color: var(--leaf); flex: 0 0 auto; height: 16px; margin: 0; width: 16px; }
+.filter-actions { align-items: center; display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1.2rem; }
+.filter-actions .button { min-height: 40px; padding: .62rem .8rem; }
+.filter-actions a:not(.button) { color: var(--leaf); font-size: .78rem; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
+.catalog-heading { align-items: center; }
+.catalog-heading p { margin: 0; }
+.catalog-sort select { background: var(--white); border: 1px solid var(--line); border-radius: .55rem; color: var(--ink); min-height: 40px; padding: .45rem 2rem .45rem .65rem; }
+.catalog-empty { background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-md); padding: clamp(2rem, 8vw, 5rem) 1.5rem; text-align: center; }
+.catalog-empty > span { display: block; font-size: 2.5rem; }
+.catalog-empty h2 { margin: .8rem 0 .35rem; }
+.catalog-empty p { color: var(--muted); margin: 0 auto 1.2rem; }
 .product-detail { display: grid; gap: clamp(2rem, 6vw, 5rem); grid-template-columns: minmax(0, .9fr) minmax(0, 1fr); padding: 3.5rem 0 5rem; }
 .product-detail .product-art { border-radius: var(--radius-lg); font-size: 8rem; height: min(48vw, 500px); }
 .variant-options { display: grid; gap: .6rem; margin: 1.3rem 0; }
