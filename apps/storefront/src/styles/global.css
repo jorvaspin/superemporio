@@ -238,11 +238,14 @@ body.category-drawer-open { overflow: hidden; }
 .home-campaigns { background: #fff; padding: 1.25rem 0; }
 .home-campaigns__grid { display: grid; gap: 1rem; grid-template-columns: minmax(0, 2.35fr) minmax(250px, 1fr); }
 .home-campaigns .hero-carousel { border-radius: 1rem; min-height: 360px; }
-.home-campaigns .hero-carousel__grid { min-height: 360px; padding: 2rem 2.2rem; }
+.home-campaigns .hero-carousel__grid { min-height: 360px; padding: 1.6rem 2.2rem; }
 .home-campaigns .hero-carousel__slide { border-radius: 1rem; }
-.home-campaigns .hero-carousel h1 { font-size: clamp(2.35rem, 4.2vw, 4.25rem); max-width: 11ch; }
-.home-campaigns .hero-carousel__kicker { font-size: .9rem; margin-top: .8rem; }
-.home-campaigns .hero-carousel__copy > p:last-of-type { font-size: .9rem; max-width: 42ch; }
+.home-campaigns .hero-carousel__copy { align-self: center; }
+.home-campaigns .hero-carousel h1 { font-size: clamp(2.35rem, 3.3vw, 3.45rem); margin-bottom: .7rem; max-width: 11ch; }
+.home-campaigns .hero-carousel__kicker { font-size: .86rem; margin: .65rem 0 .3rem; }
+.home-campaigns .hero-carousel__copy > p:last-of-type { font-size: .86rem; line-height: 1.5; margin-bottom: 0; max-width: 42ch; }
+.home-campaigns .hero-actions { margin-top: 1rem; }
+.home-campaigns .hero-actions .button { min-height: 44px; padding-block: .6rem; }
 .home-campaigns .hero-carousel__controls { right: .8rem; }
 .home-side-promo { background: linear-gradient(145deg, #ffda39, #ffc928); border-radius: 1rem; color: #19334d; display: flex; flex-direction: column; min-height: 360px; overflow: hidden; padding: 1.5rem; position: relative; }
 .home-side-promo > span:first-child { font-size: .67rem; font-weight: 950; letter-spacing: .09em; }
