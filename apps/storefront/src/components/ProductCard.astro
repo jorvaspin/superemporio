@@ -7,15 +7,18 @@ interface Props { product: CatalogProduct; }
 const { product } = Astro.props;
 const variant = product.variants[0]!;
 const toneByCategory: Record<string, string> = { 'papel-y-cocina': '#e7f1dc', limpieza: '#dff1eb', 'aseo-personal': '#f7e8d3' };
+const discount = variant.compareAtPrice && variant.compareAtPrice > variant.price
+  ? Math.round((1 - variant.price / variant.compareAtPrice) * 100)
+  : 0;
 ---
 <article class="product-card">
-  {product.badge && <span class="product-badge">{product.badge}</span>}
+  {discount > 0 ? <span class="product-discount">-{discount}%</span> : product.badge && <span class="product-badge">{product.badge}</span>}
   <a href={`/productos/${product.slug}`} aria-label={`Ver ${product.name}`}><ProductArt emoji={product.emoji} tone={toneByCategory[product.category] ?? '#e7f1dc'} /></a>
   <div class="product-content">
     <div class="product-brand">{product.brand}</div>
     <a class="product-name" href={`/productos/${product.slug}`}>{product.name}</a>
-    <div class="product-meta">{variant.label}</div>
+    <div class="product-meta"><span>{variant.label}</span>{variant.stock > 0 && variant.stock <= 5 && <b>Últimas unidades</b>}</div>
     <div class="price-row"><span class="price">{formatCLP(variant.price)}</span>{variant.compareAtPrice && <span class="compare">{formatCLP(variant.compareAtPrice)}</span>}</div>
-    <AddToCart client:load product={product} variant={variant} />
+    <AddToCart client:load product={product} variant={variant} full />
   </div>
 </article>

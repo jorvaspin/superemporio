@@ -1,17 +1,111 @@
 ---
 import CartButton from './CartButton';
+import { categories, products } from '../data/catalog';
+
+const categoryCount = (slug: string) => slug === 'ofertas'
+  ? products.filter((product) => product.variants.some((variant) => (variant.compareAtPrice ?? variant.price) > variant.price)).length
+  : products.filter((product) => product.category === slug).length;
 ---
-<div class="topbar">Despacho local y retiro · Compra seguro y ahorra en lo esencial</div>
+<div class="topbar">🚚 Despacho local y retiro · Compra segura para tu hogar</div>
 <header class="site-header">
-  <nav class="container nav" aria-label="Navegación principal">
+  <nav class="container nav retail-nav" aria-label="Navegación principal">
     <a class="brand" href="/" aria-label="Superemporio, inicio"><img src="/brand/superemporio-logo.png" alt="superemporio.cl" /></a>
-    <form class="site-search" action="/catalogo" role="search"><label class="sr-only" for="site-search">Buscar en Superemporio</label><input id="site-search" name="q" placeholder="¿Qué estás buscando?" /><button type="submit" aria-label="Buscar">⌕</button></form>
-    <div class="nav-links">
-      <a href="/catalogo">Categorías</a><a href="/catalogo?categoria=ofertas">🔥 Ofertas</a><a href="/catalogo">Packs ahorro</a><a href="/despacho">Despacho</a>
-    </div>
+    <form class="site-search" action="/catalogo" role="search">
+      <label class="sr-only" for="site-search">Buscar en Superemporio</label>
+      <input id="site-search" name="q" placeholder="¿Qué producto estás buscando?" />
+      <button type="submit" aria-label="Buscar">⌕</button>
+    </form>
+    <a class="delivery-summary" href="/despacho"><span aria-hidden="true">🚚</span><span><strong>Despacho local</strong><small>Revisa tu comuna</small></span></a>
     <div class="nav-actions">
-      <a class="icon-button" href="/cuenta" aria-label="Mi cuenta">♙</a>
+      <a class="account-link" href="/cuenta" aria-label="Ingresar a mi cuenta"><span aria-hidden="true">♙</span><span>Mi cuenta</span></a>
       <CartButton client:load />
     </div>
   </nav>
+
+  <div class="retail-category-bar">
+    <div class="container retail-category-bar__inner">
+      <button class="category-trigger" type="button" data-category-open aria-expanded="false" aria-controls="category-drawer">
+        <span class="category-trigger__icon" aria-hidden="true"><i></i><i></i><i></i></span>
+        Categorías
+      </button>
+      <nav class="category-shortcuts" aria-label="Accesos rápidos">
+        <a class="category-shortcuts__sale" href="/catalogo?categoria=ofertas">🔥 Ofertas</a>
+        <a href="/catalogo?categoria=papel-y-cocina">Papel y cocina</a>
+        <a href="/catalogo?categoria=limpieza">Limpieza</a>
+        <a href="/catalogo?categoria=aseo-personal">Aseo personal</a>
+        <a href="/despacho">Despacho</a>
+      </nav>
+    </div>
+  </div>
 </header>
+
+<div class="category-overlay" data-category-overlay hidden>
+  <aside id="category-drawer" class="category-drawer" role="dialog" aria-modal="true" aria-labelledby="category-drawer-title">
+    <div class="category-drawer__head">
+      <div><span>COMPRA SIMPLE</span><h2 id="category-drawer-title">Categorías</h2></div>
+      <button type="button" data-category-close aria-label="Cerrar categorías">×</button>
+    </div>
+    <nav class="category-drawer__list" aria-label="Todas las categorías">
+      {categories.map((category) => (
+        <a href={`/catalogo?categoria=${category.slug}`}>
+          <span class="category-drawer__icon" aria-hidden="true">{category.icon}</span>
+          <span><strong>{category.name}</strong><small>{category.description}</small></span>
+          <b>{categoryCount(category.slug)}</b>
+          <i aria-hidden="true">→</i>
+        </a>
+      ))}
+    </nav>
+    <div class="category-drawer__footer">
+      <a href="/catalogo"><span aria-hidden="true">▦</span><span><strong>Ver todo el catálogo</strong><small>Todos los productos en un solo lugar</small></span></a>
+      <a href="/contacto"><span aria-hidden="true">💬</span><span><strong>¿Necesitas ayuda?</strong><small>Conversemos por WhatsApp</small></span></a>
+    </div>
+  </aside>
+</div>
+
+<script>
+  const categoryOpeners = [...document.querySelectorAll<HTMLButtonElement>('[data-category-open]')];
+  const categoryOverlay = document.querySelector<HTMLElement>('[data-category-overlay]');
+  const categoryDrawer = document.querySelector<HTMLElement>('#category-drawer');
+  const categoryClose = document.querySelector<HTMLButtonElement>('[data-category-close]');
+  let lastFocused: HTMLElement | null = null;
+
+  const drawerFocusable = () => categoryDrawer
+    ? [...categoryDrawer.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')]
+    : [];
+
+  const openCategories = (opener?: HTMLElement) => {
+    if (!categoryOverlay) return;
+    lastFocused = opener ?? document.activeElement as HTMLElement;
+    categoryOverlay.hidden = false;
+    document.body.classList.add('category-drawer-open');
+    categoryOpeners.forEach((button) => button.setAttribute('aria-expanded', 'true'));
+    window.requestAnimationFrame(() => {
+      categoryOverlay.dataset.open = 'true';
+      drawerFocusable()[0]?.focus();
+    });
+  };
+
+  const closeCategories = () => {
+    if (!categoryOverlay || categoryOverlay.hidden) return;
+    categoryOverlay.dataset.open = 'false';
+    document.body.classList.remove('category-drawer-open');
+    categoryOpeners.forEach((button) => button.setAttribute('aria-expanded', 'false'));
+    window.setTimeout(() => { categoryOverlay.hidden = true; }, 180);
+    lastFocused?.focus();
+  };
+
+  categoryOpeners.forEach((button) => button.addEventListener('click', () => openCategories(button)));
+  categoryClose?.addEventListener('click', closeCategories);
+  categoryOverlay?.addEventListener('click', (event) => { if (event.target === categoryOverlay) closeCategories(); });
+  document.addEventListener('keydown', (event) => {
+    if (!categoryOverlay || categoryOverlay.hidden) return;
+    if (event.key === 'Escape') closeCategories();
+    if (event.key !== 'Tab') return;
+    const focusable = drawerFocusable();
+    const first = focusable[0];
+    const last = focusable.at(-1);
+    if (!first || !last) return;
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  });
+</script>
