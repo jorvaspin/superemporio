@@ -218,7 +218,7 @@ export default function CheckoutForm({ apiUrl }: Props) {
 
   return <form ref={formRef} className="checkout-grid" onSubmit={submit}>
     <section className="checkout-card">
-      <div className="eyebrow">Paso final</div><h2>Datos de tu pedido</h2>
+      <div className="eyebrow">Finaliza tu compra</div><h2>Datos de tu pedido</h2>
       <div className="form-grid">
         <label className="form-field"><span>Nombre</span><input required name="firstName" autoComplete="given-name" /></label>
         <label className="form-field"><span>Apellido</span><input required name="lastName" autoComplete="family-name" /></label>
