@@ -23,7 +23,7 @@ const { campaigns } = Astro.props;
       </div>
     </div>
   </article>)}
-  {campaigns.length > 1 && <div class="container hero-carousel__controls"><div class="hero-carousel__arrows"><button type="button" class="hero-carousel__arrow" data-hero-prev aria-label="Ver campaña anterior">←</button><button type="button" class="hero-carousel__arrow" data-hero-next aria-label="Ver campaña siguiente">→</button></div><div class="hero-carousel__dots" role="tablist" aria-label="Seleccionar campaña">{campaigns.map((campaign, index) => <button type="button" role="tab" aria-label={`Ver campaña ${index + 1}: ${campaign.title}`} aria-selected={index === 0 ? 'true' : 'false'} data-hero-dot data-index={index}></button>)}</div></div>}
+  {campaigns.length > 1 && <div class="hero-carousel__controls"><div class="hero-carousel__arrows"><button type="button" class="hero-carousel__arrow" data-hero-prev aria-label="Ver campaña anterior">↑</button><button type="button" class="hero-carousel__arrow" data-hero-next aria-label="Ver campaña siguiente">↓</button></div><div class="hero-carousel__dots" role="tablist" aria-label="Seleccionar campaña">{campaigns.map((campaign, index) => <button type="button" role="tab" aria-label={`Ver campaña ${index + 1}: ${campaign.title}`} aria-selected={index === 0 ? 'true' : 'false'} data-hero-dot data-index={index}></button>)}</div></div>}
 </section>
 
 <script>
