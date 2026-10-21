@@ -42,12 +42,14 @@ if (selectedOrder === 'mayor-ahorro') displayed = [...displayed].sort((a, b) => 
 
 const heading = categories.find((category) => category.slug === selectedCategory)?.name ?? 'Catálogo';
 const hasActiveFilters = Boolean(selectedCategory || onlyInStock || selectedFormats.length || query || selectedOrder !== 'destacados');
+const visibleProductIds = new Set(displayed.map((product) => product.id));
+const renderedProducts = [...displayed, ...products.filter((product) => !visibleProductIds.has(product.id))];
 ---
 <BaseLayout title={`${heading} | Superemporio`}>
   <section class="page-intro">
     <div class="container">
-      <div class="breadcrumbs"><a href="/">Inicio</a> / {heading}</div>
-      <h1>{heading}</h1>
+      <div class="breadcrumbs"><a href="/">Inicio</a> / <span data-catalog-breadcrumb>{heading}</span></div>
+      <h1 data-catalog-title>{heading}</h1>
       <p class="muted">Encuentra esenciales para tu hogar, en formatos que convienen.</p>
     </div>
   </section>
@@ -60,36 +62,36 @@ const hasActiveFilters = Boolean(selectedCategory || onlyInStock || selectedForm
 
         <fieldset class="filter-group">
           <legend>Categoría</legend>
-          <label><input type="radio" name="categoria" value="" checked={!selectedCategory} data-auto-submit /> Todas</label>
+          <label><input type="radio" name="categoria" value="" checked={!selectedCategory} data-filter-control data-label="Catálogo" /> Todas</label>
           {categories.map((category) => (
-            <label><input type="radio" name="categoria" value={category.slug} checked={selectedCategory === category.slug} data-auto-submit />{category.name}</label>
+            <label><input type="radio" name="categoria" value={category.slug} checked={selectedCategory === category.slug} data-filter-control data-label={category.name} />{category.name}</label>
           ))}
         </fieldset>
 
         <fieldset class="filter-group">
           <legend>Disponibilidad</legend>
-          <label><input type="checkbox" name="stock" value="disponible" checked={onlyInStock} data-auto-submit /> En stock</label>
+          <label><input type="checkbox" name="stock" value="disponible" checked={onlyInStock} data-filter-control /> En stock</label>
         </fieldset>
 
         <fieldset class="filter-group">
           <legend>Formato</legend>
-          <label><input type="checkbox" name="formato" value="pack" checked={selectedFormats.includes('pack')} data-auto-submit /> Packs</label>
-          <label><input type="checkbox" name="formato" value="unidad" checked={selectedFormats.includes('unidad')} data-auto-submit /> Unidades</label>
+          <label><input type="checkbox" name="formato" value="pack" checked={selectedFormats.includes('pack')} data-filter-control /> Packs</label>
+          <label><input type="checkbox" name="formato" value="unidad" checked={selectedFormats.includes('unidad')} data-filter-control /> Unidades</label>
         </fieldset>
 
         <div class="filter-actions">
           <button class="button button--teal" type="submit">Aplicar filtros</button>
-          {hasActiveFilters && <a href="/catalogo">Limpiar filtros</a>}
+          <a href="/catalogo" data-clear-filters hidden={!hasActiveFilters}>Limpiar filtros</a>
         </div>
       </form>
     </aside>
 
-    <section aria-live="polite">
+    <section data-catalog-results>
       <div class="section-heading catalog-heading">
-        <p class="muted"><strong>{displayed.length}</strong> {displayed.length === 1 ? 'producto encontrado' : 'productos encontrados'}</p>
+        <p class="muted" data-result-count aria-live="polite"><strong>{displayed.length}</strong> {displayed.length === 1 ? 'producto encontrado' : 'productos encontrados'}</p>
         <label class="catalog-sort">
           <span class="sr-only">Ordenar catálogo</span>
-          <select name="orden" form="catalog-filters" data-auto-submit aria-label="Ordenar catálogo">
+          <select name="orden" form="catalog-filters" data-filter-control aria-label="Ordenar catálogo">
             <option value="destacados" selected={selectedOrder === 'destacados'}>Destacados</option>
             <option value="menor-precio" selected={selectedOrder === 'menor-precio'}>Menor precio</option>
             <option value="mayor-ahorro" selected={selectedOrder === 'mayor-ahorro'}>Mayor ahorro</option>
@@ -97,16 +99,109 @@ const hasActiveFilters = Boolean(selectedCategory || onlyInStock || selectedForm
         </label>
       </div>
 
-      {displayed.length > 0
-        ? <div class="product-grid">{displayed.map((product) => <ProductCard product={product} />)}</div>
-        : <div class="catalog-empty"><span aria-hidden="true">🔎</span><h2>No encontramos productos</h2><p>Prueba quitando uno de los filtros o revisa otra categoría.</p><a class="button button--teal" href="/catalogo">Ver todo el catálogo</a></div>}
+      <div class="product-grid catalog-product-grid" data-catalog-grid>
+        {renderedProducts.map((product) => {
+          const formats = [...new Set(product.variants.map((variant) => isPack(variant.label, variant.unitCount) ? 'pack' : 'unidad'))];
+          return <div
+            class="catalog-product"
+            data-catalog-product
+            data-category={product.category}
+            data-stock={product.variants.some((variant) => variant.stock > 0) ? 'true' : 'false'}
+            data-formats={formats.join(',')}
+            data-price={minimumPrice(product)}
+            data-saving={maximumSaving(product)}
+            data-search={normalize(`${product.name} ${product.brand} ${product.description}`)}
+            data-order={products.indexOf(product)}
+            hidden={!visibleProductIds.has(product.id)}
+          ><ProductCard product={product} /></div>;
+        })}
+      </div>
+      <div class="catalog-empty" data-catalog-empty hidden={displayed.length > 0}><span aria-hidden="true">🔎</span><h2>No encontramos productos</h2><p>Prueba quitando uno de los filtros o revisa otra categoría.</p><a class="button button--teal" href="/catalogo" data-clear-filters>Ver todo el catálogo</a></div>
     </section>
   </div>
 
   <script>
     const filterForm = document.querySelector<HTMLFormElement>('#catalog-filters');
-    document.querySelectorAll<HTMLElement>('[data-auto-submit]').forEach((control) => {
-      control.addEventListener('change', () => filterForm?.requestSubmit());
+    const productGrid = document.querySelector<HTMLElement>('[data-catalog-grid]');
+    const resultCount = document.querySelector<HTMLElement>('[data-result-count]');
+    const emptyState = document.querySelector<HTMLElement>('[data-catalog-empty]');
+    const title = document.querySelector<HTMLElement>('[data-catalog-title]');
+    const breadcrumb = document.querySelector<HTMLElement>('[data-catalog-breadcrumb]');
+    const productCards = [...document.querySelectorAll<HTMLElement>('[data-catalog-product]')];
+    const clearControls = [...document.querySelectorAll<HTMLElement>('[data-clear-filters]')];
+
+    const normalizeText = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+    const applyFilters = () => {
+      if (!filterForm || !productGrid || !resultCount || !emptyState) return;
+      const scrollPosition = window.scrollY;
+      const data = new FormData(filterForm);
+      const category = String(data.get('categoria') ?? '');
+      const onlyAvailable = data.get('stock') === 'disponible';
+      const formats = new Set(data.getAll('formato').map(String));
+      const order = String(data.get('orden') ?? 'destacados');
+      const queryValue = normalizeText(String(data.get('q') ?? '').trim());
+
+      const visibleCards = productCards.filter((card) => {
+        const matchesCategory = !category
+          || (category === 'ofertas' ? Number(card.dataset.saving ?? 0) > 0 : card.dataset.category === category);
+        const matchesStock = !onlyAvailable || card.dataset.stock === 'true';
+        const cardFormats = new Set((card.dataset.formats ?? '').split(',').filter(Boolean));
+        const matchesFormat = formats.size === 0 || [...formats].some((format) => cardFormats.has(format));
+        const matchesQuery = !queryValue || (card.dataset.search ?? '').includes(queryValue);
+        const visible = matchesCategory && matchesStock && matchesFormat && matchesQuery;
+        card.hidden = !visible;
+        return visible;
+      });
+
+      const orderedCards = [...productCards].sort((first, second) => {
+        if (order === 'menor-precio') return Number(first.dataset.price) - Number(second.dataset.price);
+        if (order === 'mayor-ahorro') return Number(second.dataset.saving) - Number(first.dataset.saving);
+        return Number(first.dataset.order) - Number(second.dataset.order);
+      });
+      orderedCards.forEach((card) => productGrid.append(card));
+
+      const count = visibleCards.length;
+      resultCount.innerHTML = `<strong>${count}</strong> ${count === 1 ? 'producto encontrado' : 'productos encontrados'}`;
+      emptyState.hidden = count > 0;
+      productGrid.hidden = count === 0;
+
+      const selectedCategory = filterForm.querySelector<HTMLInputElement>('input[name="categoria"]:checked');
+      const nextHeading = selectedCategory?.dataset.label || 'Catálogo';
+      if (title) title.textContent = nextHeading;
+      if (breadcrumb) breadcrumb.textContent = nextHeading;
+      document.title = `${nextHeading} | Superemporio`;
+
+      const hasFilters = Boolean(category || onlyAvailable || formats.size || queryValue || order !== 'destacados');
+      clearControls.forEach((control) => { control.hidden = !hasFilters; });
+
+      productGrid.removeAttribute('data-updating');
+      void productGrid.offsetWidth;
+      productGrid.dataset.updating = 'true';
+      window.setTimeout(() => productGrid.removeAttribute('data-updating'), 240);
+      window.requestAnimationFrame(() => window.scrollTo(window.scrollX, scrollPosition));
+    };
+
+    filterForm?.addEventListener('submit', (event) => {
+      event.preventDefault();
+      applyFilters();
+    });
+    document.querySelectorAll<HTMLElement>('[data-filter-control]').forEach((control) => {
+      control.addEventListener('change', applyFilters);
+    });
+    clearControls.forEach((control) => {
+      control.addEventListener('click', (event) => {
+        event.preventDefault();
+        if (!filterForm) return;
+        filterForm.querySelectorAll<HTMLInputElement>('input[name="stock"], input[name="formato"]').forEach((input) => { input.checked = false; });
+        const allCategories = filterForm.querySelector<HTMLInputElement>('input[name="categoria"][value=""]');
+        if (allCategories) allCategories.checked = true;
+        const queryInput = filterForm.querySelector<HTMLInputElement>('input[name="q"]');
+        if (queryInput) queryInput.value = '';
+        const orderSelect = document.querySelector<HTMLSelectElement>('select[name="orden"]');
+        if (orderSelect) orderSelect.value = 'destacados';
+        applyFilters();
+      });
     });
   </script>
 </BaseLayout>
