@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import CheckoutForm from '../components/CheckoutForm';
+const apiUrl = import.meta.env.PUBLIC_API_URL?.replace(/\/$/, '') ?? 'http://127.0.0.1:8787/v1';
 ---
-<BaseLayout title="Finalizar compra | Superemporio"><section class="page-intro"><div class="container"><div class="breadcrumbs"><a href="/">Inicio</a> / <a href="/carrito">Carrito</a> / Pago</div><h1>Finaliza tu compra</h1><p class="muted">Sin cuentas obligatorias ni costos sorpresa.</p></div></section><main class="container"><CheckoutForm client:load /></main></BaseLayout>
+<BaseLayout title="Finalizar compra | Superemporio"><section class="page-intro"><div class="container"><div class="breadcrumbs"><a href="/">Inicio</a> / <a href="/carrito">Carrito</a> / Pago</div><h1>Finaliza tu compra</h1><p class="muted">Sin cuentas obligatorias ni costos sorpresa.</p></div></section><main class="container"><CheckoutForm client:load apiUrl={apiUrl} /></main></BaseLayout>

@@ -6,7 +6,7 @@ export const checkoutSchema = z.object({
   phone: z.string().trim().regex(/^\+?56?9\d{8}$/), fulfillment: z.enum(['delivery', 'pickup']),
   commune: z.string().trim().min(2).max(80).optional(), address: z.string().trim().min(4).max(160).optional(),
   addressDetail: z.string().trim().max(160).optional(), reference: z.string().trim().max(240).optional(),
-  couponCode: z.string().trim().toUpperCase().max(32).optional(), documentType: z.enum(['receipt', 'invoice']).default('receipt'),
+  couponCode: z.string().trim().toUpperCase().max(32).optional(), notes: z.string().trim().max(240).optional(), documentType: z.enum(['receipt', 'invoice']).default('receipt'),
   taxId: z.string().max(16).optional(), businessName: z.string().max(160).optional(), businessActivity: z.string().max(160).optional(),
 }).superRefine((data, context) => {
   if (data.fulfillment === 'delivery' && (!data.commune || !data.address)) context.addIssue({ code: z.ZodIssueCode.custom, message: 'Indica comuna y dirección para despacho.' });

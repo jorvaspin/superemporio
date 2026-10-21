@@ -149,10 +149,11 @@ app.delete('/carts/:token/items/:variantId', async (context) => {
   await database.from('cart_items').delete().eq('cart_id', cart.id).eq('variant_id', variantId.data);
   return context.body(null, 204);
 });
-app.post('/checkout/quote', zValidator('json', z.object({ items: z.array(cartItemSchema).min(1), commune: z.string().optional(), couponCode: z.string().optional() })), async (context) => {
+app.post('/checkout/quote', zValidator('json', z.object({ items: z.array(cartItemSchema).min(1), commune: z.string().optional(), couponCode: z.string().trim().toUpperCase().max(32).optional(), email: z.string().email().optional() })), async (context) => {
   const database = createAdminClient(context.env);
-  const { data, error } = await database.rpc('quote_checkout', { p_items: context.req.valid('json').items, p_commune: context.req.valid('json').commune ?? null, p_coupon_code: context.req.valid('json').couponCode ?? null });
-  if (error) return context.json({ error: 'QUOTE_UNAVAILABLE' }, 422);
+  const input = context.req.valid('json');
+  const { data, error } = await database.rpc('quote_checkout', { p_items: input.items, p_commune: input.commune ?? null, p_coupon_code: input.couponCode ?? null, p_email: input.email ?? null });
+  if (error) return context.json({ error: 'QUOTE_UNAVAILABLE', detail: error.message }, 422);
   return context.json({ data });
 });
 app.post('/orders', zValidator('json', z.object({ cart: cartSchema, checkout: checkoutSchema, channel: z.enum(['web', 'whatsapp']).default('web') })), async (context) => {
