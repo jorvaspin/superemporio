@@ -23,6 +23,7 @@ app.use('*', cors({
     return '';
   },
   credentials: true,
+  allowHeaders: ['Content-Type', 'Authorization'],
 }));
 app.get('/health', (context) => context.json({ ok: true, service: 'superemporio-api' }));
 
@@ -41,6 +42,16 @@ async function requireAdmin(context: ApiContext): Promise<AdminSession | null> {
 async function requireOwner(context: ApiContext) {
   const admin = await requireAdmin(context);
   return admin?.role === 'owner' ? admin : null;
+}
+type CustomerSession = { id: string; email: string; firstName: string | null };
+async function getCustomer(context: ApiContext): Promise<CustomerSession | null> {
+  const bearer = context.req.header('authorization')?.replace(/^Bearer\s+/i, '');
+  if (!bearer) return null;
+  const { data } = await createPublicClient(context.env).auth.getUser(bearer);
+  const email = data.user?.email?.trim().toLowerCase();
+  if (!data.user || !email) return null;
+  await createAdminClient(context.env).from('profiles').upsert({ id: data.user.id }, { onConflict: 'id', ignoreDuplicates: true });
+  return { id: data.user.id, email, firstName: data.user.user_metadata?.first_name ?? null };
 }
 async function audit(context: ApiContext, admin: AdminSession, action: string, entityType: string, entityId: string | null, oldValue?: unknown, newValue?: unknown) {
   await createAdminClient(context.env).from('audit_logs').insert({ actor_id: admin.id, action, entity_type: entityType, entity_id: entityId, old_value: oldValue ?? null, new_value: newValue ?? null, context: { source: 'admin_api' } });
@@ -122,6 +133,12 @@ app.post('/auth/login', zValidator('json', z.object({ email: authEmailSchema, pa
   } });
 });
 
+app.get('/auth/session', async (context) => {
+  const customer = await getCustomer(context);
+  if (!customer) return context.json({ error: 'UNAUTHORIZED' }, 401);
+  return context.json({ data: { user: customer } });
+});
+
 app.post('/auth/register', zValidator('json', z.object({
   email: authEmailSchema, password: authPasswordSchema,
   firstName: z.string().trim().min(2).max(80), lastName: z.string().trim().min(2).max(80),
@@ -152,6 +169,76 @@ app.post('/auth/recover', zValidator('json', z.object({ email: authEmailSchema }
   const { email } = context.req.valid('json');
   await createPublicClient(context.env).auth.resetPasswordForEmail(email, { redirectTo: `${context.env.PUBLIC_STORE_URL}/cuenta?restablecer=1` });
   return context.json({ data: { accepted: true } }, 202);
+});
+
+const customerProfileSchema = z.object({
+  firstName: z.string().trim().min(2).max(80), lastName: z.string().trim().min(2).max(80),
+  phone: z.string().trim().min(8).max(30).nullable().optional(), marketingOptIn: z.boolean().default(false),
+});
+const customerAddressSchema = z.object({
+  label: z.string().trim().min(2).max(40), region: z.string().trim().min(2).max(100).default('Metropolitana de Santiago'),
+  commune: z.string().trim().min(2).max(100), street: z.string().trim().min(4).max(160),
+  addressDetail: z.string().trim().max(160).nullable().optional(), reference: z.string().trim().max(240).nullable().optional(),
+  isDefault: z.boolean().default(false),
+});
+
+app.get('/account/overview', async (context) => {
+  const customer = await getCustomer(context);
+  if (!customer) return context.json({ error: 'UNAUTHORIZED' }, 401);
+  const database = createAdminClient(context.env);
+  await database.from('orders').update({ customer_id: customer.id }).is('customer_id', null).eq('contact_email', customer.email);
+  const [profileResult, addressesResult, ordersResult] = await Promise.all([
+    database.from('profiles').select('id,first_name,last_name,phone,marketing_opt_in').eq('id', customer.id).single(),
+    database.from('customer_addresses').select('id,label,region,commune,street,address_detail,reference,is_default,created_at').eq('customer_id', customer.id).order('is_default', { ascending: false }).order('created_at', { ascending: false }),
+    database.from('orders').select('id,public_code,order_status,payment_status,fulfillment_status,fulfillment_method,coupon_code,subtotal_clp,discount_clp,shipping_clp,grand_total_clp,created_at,order_items(quantity,product_name_snapshot,variant_label_snapshot)').eq('customer_id', customer.id).order('created_at', { ascending: false }).limit(50),
+  ]);
+  if (profileResult.error || addressesResult.error || ordersResult.error) return context.json({ error: 'ACCOUNT_UNAVAILABLE' }, 503);
+  return context.json({ data: { user: customer, profile: profileResult.data, addresses: addressesResult.data, orders: ordersResult.data } });
+});
+
+app.put('/account/profile', zValidator('json', customerProfileSchema), async (context) => {
+  const customer = await getCustomer(context);
+  if (!customer) return context.json({ error: 'UNAUTHORIZED' }, 401);
+  const input = context.req.valid('json');
+  const { data, error } = await createAdminClient(context.env).from('profiles').upsert({
+    id: customer.id, first_name: input.firstName, last_name: input.lastName,
+    phone: input.phone || null, marketing_opt_in: input.marketingOptIn,
+  }, { onConflict: 'id' }).select('id,first_name,last_name,phone,marketing_opt_in').single();
+  return error ? context.json({ error: 'PROFILE_UPDATE_FAILED' }, 422) : context.json({ data });
+});
+
+app.post('/account/addresses', zValidator('json', customerAddressSchema), async (context) => {
+  const customer = await getCustomer(context);
+  if (!customer) return context.json({ error: 'UNAUTHORIZED' }, 401);
+  const input = context.req.valid('json'); const database = createAdminClient(context.env);
+  if (input.isDefault) await database.from('customer_addresses').update({ is_default: false }).eq('customer_id', customer.id);
+  const { data, error } = await database.from('customer_addresses').insert({
+    customer_id: customer.id, label: input.label, region: input.region, commune: input.commune, street: input.street,
+    address_detail: input.addressDetail || null, reference: input.reference || null, is_default: input.isDefault,
+  }).select().single();
+  return error ? context.json({ error: 'ADDRESS_CREATE_FAILED' }, 422) : context.json({ data }, 201);
+});
+
+app.put('/account/addresses/:id', zValidator('json', customerAddressSchema), async (context) => {
+  const customer = await getCustomer(context); const id = z.string().uuid().safeParse(context.req.param('id'));
+  if (!customer) return context.json({ error: 'UNAUTHORIZED' }, 401);
+  if (!id.success) return context.json({ error: 'INVALID_ADDRESS' }, 422);
+  const input = context.req.valid('json'); const database = createAdminClient(context.env);
+  if (input.isDefault) await database.from('customer_addresses').update({ is_default: false }).eq('customer_id', customer.id);
+  const { data, error } = await database.from('customer_addresses').update({
+    label: input.label, region: input.region, commune: input.commune, street: input.street,
+    address_detail: input.addressDetail || null, reference: input.reference || null, is_default: input.isDefault,
+  }).eq('id', id.data).eq('customer_id', customer.id).select().maybeSingle();
+  if (error) return context.json({ error: 'ADDRESS_UPDATE_FAILED' }, 422);
+  return data ? context.json({ data }) : context.json({ error: 'ADDRESS_NOT_FOUND' }, 404);
+});
+
+app.delete('/account/addresses/:id', async (context) => {
+  const customer = await getCustomer(context); const id = z.string().uuid().safeParse(context.req.param('id'));
+  if (!customer) return context.json({ error: 'UNAUTHORIZED' }, 401);
+  if (!id.success) return context.json({ error: 'INVALID_ADDRESS' }, 422);
+  const { error } = await createAdminClient(context.env).from('customer_addresses').delete().eq('id', id.data).eq('customer_id', customer.id);
+  return error ? context.json({ error: 'ADDRESS_DELETE_FAILED' }, 422) : context.body(null, 204);
 });
 
 app.get('/content/campaigns', async (context) => {
@@ -206,6 +293,8 @@ app.post('/orders', zValidator('json', z.object({ cart: cartSchema, checkout: ch
   const input = context.req.valid('json'); const database = createAdminClient(context.env);
   const { data, error } = await database.rpc('create_checkout_order', { p_items: input.cart.items, p_checkout: input.checkout, p_channel: input.channel, p_cart_token: input.cart.cartToken ?? null });
   if (error) return context.json({ error: 'ORDER_REJECTED', detail: error.message }, 422);
+  const customer = await getCustomer(context);
+  if (customer && customer.email === input.checkout.email.trim().toLowerCase() && data?.id) await database.from('orders').update({ customer_id: customer.id }).eq('id', data.id);
   return context.json({ data }, 201);
 });
 app.get('/orders/:publicCode/status', async (context) => {

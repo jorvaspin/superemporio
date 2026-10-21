@@ -1,11 +1,9 @@
 import { useEffect, useState, type SyntheticEvent } from 'react';
+import CustomerDashboard from './CustomerDashboard';
+import { clearCustomerSession, readCustomerSession, saveCustomerSession, type CustomerSession } from '../lib/customerSession';
 
 type Mode = 'login' | 'register' | 'recover';
-type User = { id: string; email?: string; firstName?: string | null };
-type Session = { accessToken: string; refreshToken: string; expiresAt?: number; user: User };
 type Props = { apiUrl: string };
-
-const sessionKey = 'superemporio-customer-session';
 
 function messageFor(error?: string) {
   if (error === 'INVALID_CREDENTIALS') return 'El correo o la contraseña no son correctos.';
@@ -16,21 +14,33 @@ function messageFor(error?: string) {
 
 export default function AccountAuth({ apiUrl }: Props) {
   const [mode, setMode] = useState<Mode>('login');
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<CustomerSession | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
   const [noticeTone, setNoticeTone] = useState<'success' | 'error'>('success');
 
   useEffect(() => {
-    try {
-      const saved = window.sessionStorage.getItem(sessionKey);
-      if (!saved) return;
-      const parsed = JSON.parse(saved) as Session;
-      if (parsed.expiresAt && parsed.expiresAt * 1000 <= Date.now()) window.sessionStorage.removeItem(sessionKey);
-      else setSession(parsed);
-    } catch { window.sessionStorage.removeItem(sessionKey); }
-  }, []);
+    let current = true;
+    async function restore() {
+      const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+      const accessToken = hash.get('access_token'); const refreshToken = hash.get('refresh_token');
+      if (window.location.hash) window.history.replaceState({}, '', `${window.location.pathname}${window.location.search}`);
+      if (accessToken && refreshToken) {
+        try {
+          const response = await fetch(`${apiUrl}/auth/session`, { headers: { Authorization: `Bearer ${accessToken}` } });
+          const payload = await response.json() as { data?: { user: CustomerSession['user'] } };
+          if (response.ok && payload.data && current) {
+            const next = { accessToken, refreshToken, expiresAt: Number(hash.get('expires_at')) || Math.floor(Date.now() / 1000) + Number(hash.get('expires_in') || 3600), user: payload.data.user };
+            saveCustomerSession(next); setSession(next); return;
+          }
+        } catch { /* Fall back to the saved session below. */ }
+      }
+      if (current) setSession(readCustomerSession());
+    }
+    void restore();
+    return () => { current = false; };
+  }, [apiUrl]);
 
   async function request<T>(path: string, body: Record<string, string>) {
     const response = await fetch(`${apiUrl}${path}`, {
@@ -53,17 +63,17 @@ export default function AccountAuth({ apiUrl }: Props) {
       }
       const password = String(form.get('password') ?? '');
       if (mode === 'register') {
-        const result = await request<Session & { requiresEmailConfirmation?: boolean }>('/auth/register', {
+        const result = await request<CustomerSession & { requiresEmailConfirmation?: boolean }>('/auth/register', {
           email, password, firstName: String(form.get('firstName') ?? ''), lastName: String(form.get('lastName') ?? ''),
         });
         if (result.requiresEmailConfirmation || !result.accessToken) {
           setNoticeTone('success'); setNotice('Cuenta creada. Revisa tu correo para confirmar el acceso.'); setMode('login');
           return;
         }
-        window.sessionStorage.setItem(sessionKey, JSON.stringify(result)); setSession(result);
+        saveCustomerSession(result); setSession(result);
       } else {
-        const result = await request<Session>('/auth/login', { email, password });
-        window.sessionStorage.setItem(sessionKey, JSON.stringify(result)); setSession(result);
+        const result = await request<CustomerSession>('/auth/login', { email, password });
+        saveCustomerSession(result); setSession(result);
       }
       setNoticeTone('success'); setNotice('');
     } catch (error) { setNoticeTone('error'); setNotice(error instanceof Error ? error.message : 'No pudimos completar la solicitud.'); }
@@ -71,17 +81,9 @@ export default function AccountAuth({ apiUrl }: Props) {
   }
 
   function changeMode(nextMode: Mode) { setMode(nextMode); setNotice(''); setShowPassword(false); }
-  function signOut() { window.sessionStorage.removeItem(sessionKey); setSession(null); changeMode('login'); }
+  function signOut() { clearCustomerSession(); setSession(null); changeMode('login'); }
 
-  if (session) return <section className="account-card account-card--session" aria-live="polite">
-    <div className="account-avatar" aria-hidden="true">{(session.user.firstName || session.user.email || 'S').slice(0, 1).toUpperCase()}</div>
-    <span className="account-card__eyebrow">SESIÓN INICIADA</span>
-    <h2>Hola{session.user.firstName ? `, ${session.user.firstName}` : ''}</h2>
-    <p className="account-card__lead">Tu cuenta está lista. Desde aquí podrás revisar tus compras y administrar tus direcciones.</p>
-    <div className="account-session-email">{session.user.email}</div>
-    <a className="button button--full" href="/catalogo">Ir a comprar</a>
-    <button className="account-text-button" type="button" onClick={signOut}>Cerrar sesión</button>
-  </section>;
+  if (session) return <CustomerDashboard apiUrl={apiUrl} session={session} onSignOut={signOut} />;
 
   const title = mode === 'login' ? 'Ingresa a tu cuenta' : mode === 'register' ? 'Crea tu cuenta' : 'Recupera tu acceso';
   const lead = mode === 'login' ? 'Usa tu correo y contraseña para continuar.' : mode === 'register' ? 'Completa tus datos. Te tomará menos de un minuto.' : 'Te enviaremos un enlace para crear una nueva contraseña.';

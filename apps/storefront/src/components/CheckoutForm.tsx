@@ -3,6 +3,7 @@ import type { ComponentProps } from 'react';
 import { useStore } from '@nanostores/react';
 import { formatCLP } from '@superemporio/domain';
 import { $cart, $cartTotal } from '../lib/cart';
+import { readCustomerSession } from '../lib/customerSession';
 
 type FormSubmitEvent = Parameters<NonNullable<ComponentProps<'form'>['onSubmit']>>[0];
 type Quote = {
@@ -52,6 +53,24 @@ export default function CheckoutForm({ apiUrl }: Props) {
   const [createdOrder, setCreatedOrder] = useState<CreatedOrder | null>(null);
   const items = useMemo(() => lines.map((line) => ({ variantId: line.variant.id, quantity: line.quantity })), [lines]);
   const itemsKey = useMemo(() => JSON.stringify(items), [items]);
+
+  useEffect(() => {
+    const session = readCustomerSession();
+    if (!session) return;
+    let current = true;
+    fetch(`${apiUrl}/account/overview`, { headers: { Authorization: `Bearer ${session.accessToken}` } })
+      .then((response) => response.ok ? response.json() : null)
+      .then((payload: { data?: { profile?: { first_name?: string; last_name?: string; phone?: string }; addresses?: Array<{ commune: string; street: string; address_detail?: string; reference?: string; is_default: boolean }> } } | null) => {
+        if (!current || !payload?.data || !formRef.current) return;
+        const form = formRef.current.elements;
+        const fill = (name: string, value?: string | null) => { const field = form.namedItem(name) as HTMLInputElement | null; if (field && !field.value && value) field.value = value; };
+        fill('firstName', payload.data.profile?.first_name || session.user.firstName); fill('lastName', payload.data.profile?.last_name);
+        fill('email', session.user.email); fill('phone', payload.data.profile?.phone);
+        const address = payload.data.addresses?.find((item) => item.is_default) ?? payload.data.addresses?.[0];
+        if (address) { setCommune(address.commune); window.setTimeout(() => { fill('address', address.street); fill('addressDetail', address.address_detail); fill('reference', address.reference); }); }
+      }).catch(() => undefined);
+    return () => { current = false; };
+  }, [apiUrl]);
 
   async function requestQuote(couponCode?: string, email?: string) {
     const response = await fetch(`${apiUrl}/checkout/quote`, {
@@ -167,7 +186,7 @@ export default function CheckoutForm({ apiUrl }: Props) {
       }
       setQuote(finalQuote);
       const response = await fetch(`${apiUrl}/orders`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json', ...(readCustomerSession() ? { Authorization: `Bearer ${readCustomerSession()!.accessToken}` } : {}) },
         body: JSON.stringify({ cart: { items }, checkout, channel }),
       });
       const payload = await response.json() as { data?: CreatedOrder; error?: string; detail?: string };
