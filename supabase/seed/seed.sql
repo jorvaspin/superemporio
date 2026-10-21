@@ -3,7 +3,10 @@ insert into public.categories (id,slug,name,description,sort_order) values
 ('1d4b4f9b-5dc2-4f8b-9e1c-2ec001000002','limpieza','Limpieza','Hogar limpio, compra inteligente.',2),
 ('1d4b4f9b-5dc2-4f8b-9e1c-2ec001000003','aseo-personal','Aseo personal','Cuidado diario para tu familia.',3)
 on conflict (slug) do nothing;
-insert into public.delivery_zones (commune,fee_clp,minimum_order_clp,free_shipping_threshold_clp) values ('Ñuñoa',2990,5000,30000),('Macul',2990,5000,30000),('La Florida',3490,5000,35000),('Providencia',2990,5000,30000) on conflict(commune) do nothing;
+delete from public.delivery_zones where commune not in ('La Cisterna','San Miguel','La Granja');
+insert into public.delivery_zones (commune,fee_clp,minimum_order_clp,free_shipping_threshold_clp,active) values
+('La Cisterna',2990,0,null,true),('San Miguel',2990,0,null,true),('La Granja',2990,0,null,true)
+on conflict(commune) do update set fee_clp=excluded.fee_clp,minimum_order_clp=excluded.minimum_order_clp,free_shipping_threshold_clp=excluded.free_shipping_threshold_clp,active=true;
 insert into public.pickup_points (name,region,commune,street,instructions,opening_hours) values ('Retiro Superemporio','Metropolitana de Santiago','Ñuñoa','Dirección por confirmar','Coordinaremos tu horario por WhatsApp.','Lunes a sábado, con coordinación previa');
 insert into public.site_settings (key,value) values ('store',jsonb_build_object('name','Superemporio','currency','CLP','whatsapp','56900000000')) on conflict(key) do nothing;
 

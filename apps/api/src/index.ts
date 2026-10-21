@@ -3,7 +3,7 @@ import type { Context } from 'hono';
 import { cors } from 'hono/cors';
 import { zValidator } from '@hono/zod-validator';
 import { cartItemSchema, checkoutSchema, productSchema } from '@superemporio/validation';
-import { canTransitionOrder, ORDER_STATUSES } from '@superemporio/domain';
+import { canTransitionOrder, DELIVERY_COMMUNES, ORDER_STATUSES } from '@superemporio/domain';
 import { z } from 'zod';
 import { createAdminClient, createPublicClient } from './lib/supabase';
 import { createFlowPayment, getFlowPaymentStatus } from './lib/flow';
@@ -177,7 +177,7 @@ const customerProfileSchema = z.object({
 });
 const customerAddressSchema = z.object({
   label: z.string().trim().min(2).max(40), region: z.string().trim().min(2).max(100).default('Metropolitana de Santiago'),
-  commune: z.string().trim().min(2).max(100), street: z.string().trim().min(4).max(160),
+  commune: z.enum(DELIVERY_COMMUNES), street: z.string().trim().min(4).max(160),
   addressDetail: z.string().trim().max(160).nullable().optional(), reference: z.string().trim().max(240).nullable().optional(),
   isDefault: z.boolean().default(false),
 });

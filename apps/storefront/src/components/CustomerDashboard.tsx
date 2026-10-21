@@ -1,5 +1,5 @@
 import { useEffect, useState, type ComponentProps } from 'react';
-import { formatCLP } from '@superemporio/domain';
+import { DELIVERY_COMMUNES, DELIVERY_FEE_CLP, formatCLP } from '@superemporio/domain';
 import { saveCustomerSession, type CustomerSession } from '../lib/customerSession';
 
 type SubmitEvent = Parameters<NonNullable<ComponentProps<'form'>['onSubmit']>>[0];
@@ -141,7 +141,7 @@ export default function CustomerDashboard({ apiUrl, session, onSignOut }: Props)
       <section role="dialog" aria-modal="true" aria-labelledby="address-modal-title">
         <header><div><span>NUEVA DIRECCIÓN</span><h2 id="address-modal-title">{editingAddress.id ? 'Editar dirección' : 'Agregar dirección'}</h2></div><button type="button" onClick={() => setEditingAddress(null)} aria-label="Cerrar">×</button></header>
         <form className="address-form" onSubmit={saveAddress}>
-          <div className="account-form__names"><label>Nombre de la dirección<input name="label" defaultValue={editingAddress.label ?? 'Casa'} required /></label><label>Comuna<input name="commune" defaultValue={editingAddress.commune ?? ''} placeholder="Ej: Providencia" required /></label></div>
+          <div className="account-form__names"><label>Nombre de la dirección<input name="label" defaultValue={editingAddress.label ?? 'Casa'} required /></label><label>Comuna<select name="commune" defaultValue={DELIVERY_COMMUNES.includes(editingAddress.commune as typeof DELIVERY_COMMUNES[number]) ? editingAddress.commune : ''} required><option value="">Selecciona</option>{DELIVERY_COMMUNES.map((commune) => <option key={commune}>{commune}</option>)}</select><small>Despacho disponible por {formatCLP(DELIVERY_FEE_CLP)}</small></label></div>
           <label>Región<input name="region" defaultValue={editingAddress.region ?? 'Metropolitana de Santiago'} required /></label>
           <label>Calle y número<input name="street" defaultValue={editingAddress.street ?? ''} placeholder="Av. Siempre Viva 123" required /></label>
           <div className="account-form__names"><label>Departamento o casa<input name="addressDetail" defaultValue={editingAddress.address_detail ?? ''} placeholder="Opcional" /></label><label>Referencia<input name="reference" defaultValue={editingAddress.reference ?? ''} placeholder="Ej: portón azul" /></label></div>

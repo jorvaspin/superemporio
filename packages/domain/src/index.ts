@@ -11,6 +11,10 @@ export type FulfillmentStatus = (typeof FULFILLMENT_STATUSES)[number];
 export const RESERVATION_STATUSES = ['active', 'committed', 'released', 'expired'] as const;
 export type ReservationStatus = (typeof RESERVATION_STATUSES)[number];
 
+export const DELIVERY_COMMUNES = ['La Cisterna', 'San Miguel', 'La Granja'] as const;
+export type DeliveryCommune = (typeof DELIVERY_COMMUNES)[number];
+export const DELIVERY_FEE_CLP = 2990;
+
 export type Money = number;
 export const formatCLP = (amount: Money) => new Intl.NumberFormat('es-CL', {
   style: 'currency', currency: 'CLP', maximumFractionDigits: 0,

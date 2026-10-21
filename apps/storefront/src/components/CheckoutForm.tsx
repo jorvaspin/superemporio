@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ComponentProps } from 'react';
 import { useStore } from '@nanostores/react';
-import { formatCLP } from '@superemporio/domain';
+import { DELIVERY_COMMUNES, DELIVERY_FEE_CLP, formatCLP } from '@superemporio/domain';
 import { $cart, $cartTotal } from '../lib/cart';
 import { readCustomerSession } from '../lib/customerSession';
 
@@ -18,8 +18,6 @@ type Quote = {
 };
 type CreatedOrder = { id: string; publicCode: string; grandTotalClp: number; couponCode: string | null };
 type Props = { apiUrl: string };
-
-const communes = ['Ñuñoa', 'La Florida', 'Macul', 'Providencia'];
 
 function normalizePhone(value: string) {
   const digits = value.replace(/\D/g, '');
@@ -66,7 +64,8 @@ export default function CheckoutForm({ apiUrl }: Props) {
         const fill = (name: string, value?: string | null) => { const field = form.namedItem(name) as HTMLInputElement | null; if (field && !field.value && value) field.value = value; };
         fill('firstName', payload.data.profile?.first_name || session.user.firstName); fill('lastName', payload.data.profile?.last_name);
         fill('email', session.user.email); fill('phone', payload.data.profile?.phone);
-        const address = payload.data.addresses?.find((item) => item.is_default) ?? payload.data.addresses?.[0];
+        const address = payload.data.addresses?.find((item) => item.is_default && DELIVERY_COMMUNES.includes(item.commune as typeof DELIVERY_COMMUNES[number]))
+          ?? payload.data.addresses?.find((item) => DELIVERY_COMMUNES.includes(item.commune as typeof DELIVERY_COMMUNES[number]));
         if (address) { setCommune(address.commune); window.setTimeout(() => { fill('address', address.street); fill('addressDetail', address.address_detail); fill('reference', address.reference); }); }
       }).catch(() => undefined);
     return () => { current = false; };
@@ -232,7 +231,7 @@ export default function CheckoutForm({ apiUrl }: Props) {
         <label className="radio-card"><input type="radio" value="pickup" checked={fulfillment === 'pickup'} onChange={() => setFulfillment('pickup')} name="fulfillment" /> <strong>Retiro</strong><br /><span className="muted">Coordinamos contigo</span></label>
       </div>
       {fulfillment === 'delivery' && <div className="form-grid">
-        <label className="form-field"><span>Comuna</span><select required name="commune" value={commune} onChange={(event) => setCommune(event.target.value)}><option value="">Selecciona</option>{communes.map((name) => <option key={name}>{name}</option>)}</select></label>
+        <label className="form-field"><span>Comuna</span><select required name="commune" value={commune} onChange={(event) => setCommune(event.target.value)}><option value="">Selecciona</option>{DELIVERY_COMMUNES.map((name) => <option key={name}>{name}</option>)}</select><small>Tarifa fija de despacho: {formatCLP(DELIVERY_FEE_CLP)}</small></label>
         <label className="form-field"><span>Dirección</span><input required name="address" placeholder="Calle y número" autoComplete="street-address" /></label>
         <label className="form-field"><span>Departamento o casa</span><input name="addressDetail" placeholder="Opcional" /></label>
         <label className="form-field"><span>Referencia</span><input name="reference" placeholder="Ej: portón azul" /></label>
