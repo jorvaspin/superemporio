@@ -107,6 +107,52 @@ const couponSchema = z.object({
 }).superRefine((value, issue) => { if (value.type === 'percentage' && (value.value < 1 || value.value > 100)) issue.addIssue({ code: z.ZodIssueCode.custom, message: 'El porcentaje debe estar entre 1 y 100.' }); });
 const deliveryZoneSchema = z.object({ region: z.string().trim().min(2).max(100).default('Metropolitana de Santiago'), commune: z.string().trim().min(2).max(100), feeClp: z.number().int().min(0), minimumOrderClp: z.number().int().min(0).default(0), freeShippingThresholdClp: z.number().int().min(0).nullable().optional(), active: z.boolean().default(true) });
 const orderStatusSchema = z.enum(ORDER_STATUSES);
+const authEmailSchema = z.string().trim().toLowerCase().email().max(254);
+const authPasswordSchema = z.string().min(8).max(72);
+
+app.post('/auth/login', zValidator('json', z.object({ email: authEmailSchema, password: authPasswordSchema })), async (context) => {
+  const input = context.req.valid('json');
+  const { data, error } = await createPublicClient(context.env).auth.signInWithPassword(input);
+  if (error || !data.session || !data.user) return context.json({ error: 'INVALID_CREDENTIALS' }, 401);
+  return context.json({ data: {
+    accessToken: data.session.access_token,
+    refreshToken: data.session.refresh_token,
+    expiresAt: data.session.expires_at,
+    user: { id: data.user.id, email: data.user.email, firstName: data.user.user_metadata?.first_name ?? null },
+  } });
+});
+
+app.post('/auth/register', zValidator('json', z.object({
+  email: authEmailSchema, password: authPasswordSchema,
+  firstName: z.string().trim().min(2).max(80), lastName: z.string().trim().min(2).max(80),
+})), async (context) => {
+  const input = context.req.valid('json');
+  const { data, error } = await createPublicClient(context.env).auth.signUp({
+    email: input.email,
+    password: input.password,
+    options: {
+      emailRedirectTo: `${context.env.PUBLIC_STORE_URL}/cuenta`,
+      data: { first_name: input.firstName, last_name: input.lastName, full_name: `${input.firstName} ${input.lastName}` },
+    },
+  });
+  if (error) return context.json({ error: error.message.toLowerCase().includes('registered') ? 'EMAIL_ALREADY_REGISTERED' : 'REGISTRATION_FAILED' }, 422);
+  if (!data.user || data.user.identities?.length === 0) return context.json({ error: 'EMAIL_ALREADY_REGISTERED' }, 409);
+  return context.json({ data: {
+    requiresEmailConfirmation: !data.session,
+    ...(data.session ? {
+      accessToken: data.session.access_token,
+      refreshToken: data.session.refresh_token,
+      expiresAt: data.session.expires_at,
+    } : {}),
+    user: { id: data.user.id, email: data.user.email, firstName: input.firstName },
+  } }, 201);
+});
+
+app.post('/auth/recover', zValidator('json', z.object({ email: authEmailSchema })), async (context) => {
+  const { email } = context.req.valid('json');
+  await createPublicClient(context.env).auth.resetPasswordForEmail(email, { redirectTo: `${context.env.PUBLIC_STORE_URL}/cuenta?restablecer=1` });
+  return context.json({ data: { accepted: true } }, 202);
+});
 
 app.get('/content/campaigns', async (context) => {
   const placement = context.req.query('placement');

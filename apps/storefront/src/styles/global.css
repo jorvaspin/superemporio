@@ -215,7 +215,8 @@ body.category-drawer-open { overflow: hidden; }
 .delivery-summary small { color: #6c7974; font-size: .66rem; margin-top: .1rem; }
 .account-link { align-items: center; border-radius: .65rem; color: #17344d; display: flex; font-size: .76rem; font-weight: 800; gap: .35rem; min-height: 44px; padding: .4rem .55rem; }
 .account-link:hover { background: #eff7f4; }
-.account-link > span:first-child { font-size: 1.2rem; }
+.account-link__icon { display: grid; height: 22px; place-items: center; width: 22px; }
+.account-link__icon svg { height: 20px; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; width: 20px; }
 .retail-category-bar { background: #fff; border-bottom: 1px solid #e2e8e5; border-top: 1px solid #edf1ef; }
 .retail-category-bar__inner { align-items: center; display: flex; gap: 1.6rem; min-height: 52px; }
 .category-trigger { align-items: center; background: #00a8a1; border: 0; border-radius: .6rem; color: #fff; display: inline-flex; font-size: .84rem; font-weight: 900; gap: .6rem; min-height: 38px; padding: .55rem .85rem; }
@@ -320,11 +321,69 @@ body.category-drawer-open { overflow: hidden; }
 .catalog-simple__product .product-card { height: 100%; }
 .catalog-simple__grid[data-updating='true'] { animation: catalog-products-update .2s ease-out; }
 
+/* Acceso de clientes: compacto, claro y consistente con la tienda. */
+.account-page { background: linear-gradient(135deg, #f2f6f3 0%, #f9f7f0 100%); padding: clamp(2rem, 4.5vw, 4rem) 0; }
+.account-layout { display: grid; grid-template-columns: minmax(0, 1.04fr) minmax(390px, .96fr); min-height: 570px; max-width: 1080px; }
+.account-welcome { background: linear-gradient(145deg, #0d3d34 0%, #12685f 100%); border-radius: 1.4rem 0 0 1.4rem; color: #fff; display: flex; flex-direction: column; overflow: hidden; padding: clamp(2rem, 4vw, 3.5rem); position: relative; }
+.account-welcome::before { background: #ffc928; border-radius: 50%; content: ''; height: 270px; opacity: .96; position: absolute; right: -150px; top: -120px; width: 270px; }
+.account-welcome::after { border: 34px solid rgba(255,255,255,.07); border-radius: 50%; bottom: -145px; content: ''; height: 250px; left: -120px; position: absolute; width: 250px; }
+.account-welcome__brand { align-items: center; align-self: flex-start; background: #fff; border-radius: .75rem; display: flex; min-height: 48px; padding: .55rem .75rem; position: relative; z-index: 1; }
+.account-welcome__brand img { display: block; height: auto; max-width: 165px; width: 100%; }
+.account-welcome__copy { margin: auto 0; max-width: 480px; padding: 2rem 0; position: relative; z-index: 1; }
+.account-welcome__copy > span, .account-card__eyebrow { color: #ffc928; font-size: .68rem; font-weight: 950; letter-spacing: .12em; }
+.account-welcome__copy h1 { font-size: clamp(2.55rem, 4.5vw, 4.25rem); letter-spacing: -.065em; line-height: .98; margin: .8rem 0 1.1rem; max-width: 9ch; }
+.account-welcome__copy p { color: #dcf2ec; font-size: .98rem; line-height: 1.65; margin: 0; max-width: 44ch; }
+.account-benefits { display: grid; gap: .85rem; list-style: none; margin: 0; padding: 0; position: relative; z-index: 1; }
+.account-benefits li { align-items: center; display: grid; gap: .75rem; grid-template-columns: 34px 1fr; }
+.account-benefits i { align-items: center; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22); border-radius: 50%; display: flex; font-size: .8rem; font-style: normal; height: 34px; justify-content: center; width: 34px; }
+.account-benefits strong, .account-benefits small { display: block; }
+.account-benefits strong { font-size: .79rem; }
+.account-benefits small { color: #badad2; font-size: .68rem; margin-top: .12rem; }
+.account-card { background: #fff; border: 1px solid #dfe7e2; border-left: 0; border-radius: 0 1.4rem 1.4rem 0; box-shadow: 0 18px 45px rgba(28,52,43,.09); display: flex; flex-direction: column; justify-content: center; padding: clamp(2rem, 4vw, 3.5rem); }
+.account-card__eyebrow { color: #008f89; }
+.account-card h2 { color: #152b22; font-size: clamp(2rem, 3vw, 2.65rem); margin: .5rem 0 .45rem; }
+.account-card__lead { color: #66736d; font-size: .87rem; line-height: 1.55; margin-bottom: 1.55rem; }
+.account-form { display: grid; gap: .95rem; }
+.account-form label { color: #263c33; display: grid; font-size: .76rem; font-weight: 850; gap: .38rem; }
+.account-form input { background: #fff; border: 1px solid #cbd7d0; border-radius: .7rem; color: #152b22; min-height: 50px; min-width: 0; padding: .75rem .85rem; width: 100%; }
+.account-form input::placeholder { color: #8b9690; }
+.account-form input:focus { border-color: #008f89; box-shadow: 0 0 0 3px rgba(0,168,161,.12); outline: 0; }
+.account-form__names { display: grid; gap: .8rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.account-password { position: relative; }
+.account-password input { padding-right: 3.2rem; }
+.account-password button { align-items: center; background: transparent; border: 0; border-radius: 50%; color: #53635c; display: flex; height: 38px; justify-content: center; padding: 0; position: absolute; right: .42rem; top: 50%; transform: translateY(-50%); width: 38px; }
+.account-password button:hover { background: #eef5f2; }
+.account-password svg { height: 20px; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; width: 20px; }
+.account-forgot, .account-text-button { align-self: end; background: transparent; border: 0; color: #176c60; font-size: .75rem; font-weight: 800; padding: 0; text-decoration: underline; text-underline-offset: 3px; }
+.account-submit { border-radius: .7rem; margin-top: .15rem; }
+.account-submit:disabled { cursor: wait; opacity: .68; transform: none; }
+.account-notice { border-radius: .65rem; font-size: .74rem; font-weight: 750; line-height: 1.45; margin: 0; padding: .7rem .8rem; }
+.account-notice--success { background: #eaf7ef; color: #176b47; }
+.account-notice--error { background: #fff0ec; color: #a43b25; }
+.account-card__footer { align-items: center; border-top: 1px solid #e7ece8; display: flex; gap: .4rem; justify-content: center; margin-top: 1.45rem; padding-top: 1.25rem; text-align: center; }
+.account-card__footer span { color: #64716b; font-size: .74rem; }
+.account-card__footer button { background: transparent; border: 0; color: #008f89; font-size: .74rem; font-weight: 900; padding: 0; }
+.account-card__footer button:hover { text-decoration: underline; text-underline-offset: 3px; }
+.account-card--session { align-items: center; text-align: center; }
+.account-avatar { align-items: center; background: #e4f5ef; border-radius: 50%; color: #0c5b4a; display: flex; font-size: 1.75rem; font-weight: 950; height: 72px; justify-content: center; margin-bottom: 1.25rem; width: 72px; }
+.account-card--session .account-card__lead { max-width: 38ch; }
+.account-session-email { background: #f3f7f4; border-radius: .65rem; color: #44554d; font-size: .79rem; margin-bottom: 1rem; padding: .7rem 1rem; width: 100%; }
+.account-card--session .account-text-button { align-self: center; margin-top: 1rem; }
+
 @media (max-width: 1050px) {
   .retail-nav { grid-template-columns: 155px minmax(220px, 1fr) auto; }
   .delivery-summary { display: none; }
   .home-campaigns__grid { grid-template-columns: minmax(0, 2fr) minmax(220px, .8fr); }
   .retail-product-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 860px) {
+  .account-layout { grid-template-columns: minmax(0, 1fr); max-width: 650px; }
+  .account-welcome { border-radius: 1.25rem 1.25rem 0 0; min-height: 330px; }
+  .account-welcome__copy { margin: 2rem 0; padding: 0; }
+  .account-welcome__copy h1 { max-width: 12ch; }
+  .account-benefits { grid-template-columns: repeat(3, 1fr); }
+  .account-benefits li { align-items: start; grid-template-columns: 1fr; }
+  .account-card { border: 1px solid #dfe7e2; border-radius: 0 0 1.25rem 1.25rem; }
 }
 @media (max-width: 760px) {
   .topbar { font-size: .68rem; }
@@ -367,4 +426,17 @@ body.category-drawer-open { overflow: hidden; }
   .retail-product-grid .product-meta span { font-size: .61rem; }
   .retail-product-grid .price { font-size: 1rem; }
   .catalog-simple { padding-top: .9rem; }
+  .account-page { padding: .8rem 0 1.5rem; }
+  .account-layout { width: min(100% - 1rem, 650px); }
+  .account-welcome { min-height: 245px; padding: 1.35rem; }
+  .account-welcome__brand { min-height: 42px; }
+  .account-welcome__brand img { max-width: 140px; }
+  .account-welcome__copy { margin: 1.5rem 0 .5rem; }
+  .account-welcome__copy h1 { font-size: 2.35rem; margin-bottom: .75rem; }
+  .account-welcome__copy p { font-size: .84rem; }
+  .account-benefits { display: none; }
+  .account-card { padding: 1.45rem 1.2rem; }
+  .account-card h2 { font-size: 1.85rem; }
+  .account-form__names { grid-template-columns: 1fr; }
+  .account-card__footer { align-items: center; flex-direction: column; }
 }

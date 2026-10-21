@@ -1,4 +1,25 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import AccountAuth from '../components/AccountAuth';
+const apiUrl = import.meta.env.PUBLIC_API_URL?.replace(/\/$/, '') ?? 'http://127.0.0.1:8787/v1';
 ---
-<BaseLayout title="Mi cuenta | Superemporio"><section class="page-intro"><div class="container"><h1>Mi cuenta</h1><p class="muted">Guarda tus direcciones y revisa tus pedidos.</p></div></section><section class="section"><div class="container" style="max-width:620px"><div class="checkout-card"><h2>Ingresa a tu cuenta</h2><p class="muted">Próximamente podrás iniciar sesión con tu correo y contraseña para consultar compras y direcciones.</p><div class="form-grid"><label class="form-field form-field--full">Correo<input type="email" placeholder="nombre@correo.cl" /></label><label class="form-field form-field--full">Contraseña<input type="password" /></label></div><button class="button" style="margin-top:1rem">Ingresar</button></div></div></section></BaseLayout>
+<BaseLayout title="Ingresar | Superemporio" description="Ingresa o crea tu cuenta Superemporio para comprar más rápido y consultar tus pedidos.">
+  <section class="account-page" aria-label="Acceso a tu cuenta">
+    <div class="container account-layout">
+      <section class="account-welcome" aria-labelledby="account-welcome-title">
+        <a class="account-welcome__brand" href="/" aria-label="Volver al inicio de Superemporio"><img src="/brand/superemporio-logo.png" alt="superemporio.cl" /></a>
+        <div class="account-welcome__copy">
+          <span>COMPRA SIMPLE Y SEGURA</span>
+          <h1 id="account-welcome-title">Qué bueno tenerte por aquí.</h1>
+          <p>Ingresa para comprar más rápido y mantener toda tu información en un solo lugar.</p>
+        </div>
+        <ul class="account-benefits" aria-label="Beneficios de tu cuenta">
+          <li><i aria-hidden="true">✓</i><span><strong>Revisa tus pedidos</strong><small>Consulta su estado cuando quieras.</small></span></li>
+          <li><i aria-hidden="true">✓</i><span><strong>Compra más rápido</strong><small>Reutiliza tus datos en próximas compras.</small></span></li>
+          <li><i aria-hidden="true">✓</i><span><strong>Tus datos protegidos</strong><small>Acceso administrado de forma segura.</small></span></li>
+        </ul>
+      </section>
+      <AccountAuth client:load apiUrl={apiUrl} />
+    </div>
+  </section>
+</BaseLayout>
