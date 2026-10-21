@@ -1,5 +1,11 @@
 ---
 import AdminLayout from '../layouts/AdminLayout.astro';
+import { OperationsManager } from '../components/OperationsManager';
 const section = Astro.params.section?.replace(/(^|-)\w/g, (letter) => letter.toUpperCase()) ?? 'Configuración';
+const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:8787/v1';
+const supabaseUrl = import.meta.env.SUPABASE_URL ?? '';
+const anonKey = import.meta.env.SUPABASE_ANON_KEY ?? '';
 ---
-<AdminLayout title={section} section={section}><section class="panel"><h2>{section}</h2><p style="color:#607065;line-height:1.6">Esta sección está preparada dentro de la arquitectura. Al conectar Supabase permitirá administrar datos reales con roles, auditoría y validaciones.</p><button class="admin-button">Configurar {section.toLowerCase()}</button></section></AdminLayout>
+<AdminLayout title={section} section={section}>
+  {Astro.params.section === 'configuracion' && supabaseUrl && anonKey ? <OperationsManager client:load mode="settings" apiUrl={apiUrl} supabaseUrl={supabaseUrl} anonKey={anonKey} /> : <section class="panel"><h2>{section}</h2><p style="color:#607065;line-height:1.6">Esta sección será habilitada con el mismo acceso protegido del administrador.</p></section>}
+</AdminLayout>

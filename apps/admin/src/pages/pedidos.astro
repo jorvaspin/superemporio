@@ -1,4 +1,10 @@
 ---
 import AdminLayout from '../layouts/AdminLayout.astro';
+import { OperationsManager } from '../components/OperationsManager';
+const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:8787/v1';
+const supabaseUrl = import.meta.env.SUPABASE_URL ?? '';
+const anonKey = import.meta.env.SUPABASE_ANON_KEY ?? '';
 ---
-<AdminLayout title="Pedidos" section="Pedidos"><section class="panel"><div class="panel-head"><h2>Todos los pedidos</h2><button class="admin-button admin-button--soft">Filtrar</button></div><div class="table-scroll"><table><thead><tr><th>Código</th><th>Cliente</th><th>Canal</th><th>Pago</th><th>Estado</th></tr></thead><tbody><tr><td colspan="5" style="text-align:center;color:#607065;padding:2rem">No existen pedidos todavía.</td></tr></tbody></table></div></section></AdminLayout>
+<AdminLayout title="Pedidos" section="Pedidos">
+  {supabaseUrl && anonKey ? <OperationsManager client:load mode="orders" apiUrl={apiUrl} supabaseUrl={supabaseUrl} anonKey={anonKey} /> : <div class="notice-admin">Faltan las variables de Supabase para habilitar pedidos.</div>}
+</AdminLayout>

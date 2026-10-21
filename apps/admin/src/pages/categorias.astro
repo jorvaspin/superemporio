@@ -1,0 +1,10 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+import { CategoryManager } from '../components/CategoryManager';
+const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:8787/v1';
+const supabaseUrl = import.meta.env.SUPABASE_URL ?? '';
+const anonKey = import.meta.env.SUPABASE_ANON_KEY ?? '';
+---
+<AdminLayout title="Categorías" section="Categorías">
+  {supabaseUrl && anonKey ? <CategoryManager client:load apiUrl={apiUrl} supabaseUrl={supabaseUrl} anonKey={anonKey} /> : <div class="notice-admin">Faltan las variables de Supabase para habilitar categorías.</div>}
+</AdminLayout>
