@@ -6,6 +6,7 @@ type Mode = 'orders' | 'inventory' | 'coupons' | 'delivery' | 'settings';
 type ApiItem = Record<string, unknown>;
 type Props = { mode: Mode; apiUrl: string; supabaseUrl: string; anonKey: string };
 const currency = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 });
+const couponDate = new Intl.DateTimeFormat('es-CL', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Santiago' });
 const title: Record<Mode, string> = { orders: 'Pedidos reales', inventory: 'Inventario', coupons: 'Cupones', delivery: 'Despacho por comuna', settings: 'Configuración del sitio' };
 
 function dateValue(value: unknown) {
@@ -13,6 +14,16 @@ function dateValue(value: unknown) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
   return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+}
+
+function couponAvailability(item: ApiItem) {
+  if (!item.active) return 'Inactivo';
+  const now = Date.now();
+  const startsAt = typeof item.starts_at === 'string' ? new Date(item.starts_at) : null;
+  const endsAt = typeof item.ends_at === 'string' ? new Date(item.ends_at) : null;
+  if (startsAt && startsAt.getTime() > now) return `Programado · ${couponDate.format(startsAt)}`;
+  if (endsAt && endsAt.getTime() <= now) return `Vencido · ${couponDate.format(endsAt)}`;
+  return endsAt ? `Vigente hasta ${couponDate.format(endsAt)}` : 'Vigente';
 }
 
 export function OperationsManager({ mode, apiUrl, supabaseUrl, anonKey }: Props) {
@@ -43,7 +54,7 @@ export function OperationsManager({ mode, apiUrl, supabaseUrl, anonKey }: Props)
   return <><section className="panel"><div className="panel-head"><div><h2>{title[mode]}</h2><p className="campaign-help">Acceso validado por rol y cada modificación queda en auditoría.</p></div>{mode === 'inventory' && <button className="admin-button" onClick={() => setAdjustOpen(true)}>+ Ajustar stock</button>}{mode === 'coupons' && <button className="admin-button" onClick={() => setCoupon({ code: '', type: 'percentage', value: 10, minimum_subtotal_clp: 0, active: true })}>+ Nuevo cupón</button>}{mode === 'delivery' && <button className="admin-button" onClick={() => setDelivery({ region: 'Metropolitana de Santiago', commune: '', fee_clp: 0, minimum_order_clp: 0, active: true })}>+ Nueva comuna</button>}</div>
   {mode === 'orders' && <div className="admin-cards">{items.map((item) => <article className="operation-card" key={String(item.id)}><div><strong>{String(item.public_code)}</strong><p>{String(item.contact_first_name)} {String(item.contact_last_name)} · {currency.format(Number(item.grand_total_clp))}</p>{Boolean(item.coupon_code) && <p className="campaign-help">Cupón {String(item.coupon_code)} · descuento {currency.format(Number(item.discount_clp))}</p>}</div><form onSubmit={(event) => saveOrder(item, event)}><select name="orderStatus" defaultValue={String(item.order_status)}>{['draft','pending_payment','pending_manual','confirmed','preparing','ready','dispatched','completed','cancelled','expired'].map((status) => <option key={status}>{status}</option>)}</select><select name="fulfillmentStatus" defaultValue={String(item.fulfillment_status)}>{['unfulfilled','preparing','ready','dispatched','delivered','cancelled'].map((status) => <option key={status}>{status}</option>)}</select><input name="note" placeholder="Nota interna (opcional)" maxLength={500} /><button className="admin-button" disabled={busy}>Actualizar</button></form></article>)}{!items.length && <p className="campaign-help">Todavía no existen pedidos.</p>}</div>}
   {mode === 'inventory' && <div className="table-scroll"><table><thead><tr><th>Producto</th><th>Disponible</th><th>Reservado</th><th>Alerta</th></tr></thead><tbody>{items.map((item) => { const variant = item.product_variants as ApiItem; const product = variant?.products as ApiItem; return <tr key={String(item.variant_id)}><td>{String(product?.name ?? '')} · {String(variant?.label ?? '')}</td><td>{String(item.available_quantity)}</td><td>{String(item.reserved_quantity)}</td><td>{String(item.low_stock_threshold)}</td></tr>; })}</tbody></table></div>}
-  {mode === 'coupons' && <div className="table-scroll"><table><thead><tr><th>Código</th><th>Beneficio</th><th>Activo</th><th></th></tr></thead><tbody>{items.map((item) => <tr key={String(item.id)}><td><strong>{String(item.code)}</strong></td><td>{String(item.type)} · {String(item.value)}</td><td>{item.active ? 'Sí' : 'No'}</td><td><button className="admin-button admin-button--soft" onClick={() => setCoupon(item)}>Editar</button></td></tr>)}</tbody></table></div>}
+  {mode === 'coupons' && <div className="table-scroll"><table><thead><tr><th>Código</th><th>Beneficio</th><th>Estado real</th><th></th></tr></thead><tbody>{items.map((item) => <tr key={String(item.id)}><td><strong>{String(item.code)}</strong></td><td>{String(item.type)} · {String(item.value)}</td><td>{couponAvailability(item)}</td><td><button className="admin-button admin-button--soft" onClick={() => setCoupon(item)}>Editar</button></td></tr>)}</tbody></table></div>}
   {mode === 'delivery' && <div className="table-scroll"><table><thead><tr><th>Comuna</th><th>Tarifa</th><th>Gratis desde</th><th></th></tr></thead><tbody>{items.map((item) => <tr key={String(item.id)}><td>{String(item.commune)}</td><td>{currency.format(Number(item.fee_clp))}</td><td>{item.free_shipping_threshold_clp ? currency.format(Number(item.free_shipping_threshold_clp)) : '—'}</td><td><button className="admin-button admin-button--soft" onClick={() => setDelivery(item)}>Editar</button></td></tr>)}</tbody></table></div>}
   {mode === 'settings' && <div className="admin-cards">{items.map((item) => <form className="operation-card" key={String(item.key)} onSubmit={(event) => saveSetting(item, event)}><strong>{String(item.key)}</strong><textarea name="value" defaultValue={JSON.stringify(item.value, null, 2)} /><button className="admin-button" disabled={busy}>Guardar</button></form>)}{!items.length && <p className="campaign-help">Aún no hay ajustes guardados. Se crearán al guardar una clave desde la API.</p>}</div>}
   </section>

@@ -146,7 +146,8 @@ h2 { font-size: clamp(1.75rem, 3vw, 2.5rem); letter-spacing: -.045em; margin-bot
 .coupon-box > label { display: block; font-size: .82rem; font-weight: 900; margin-bottom: .45rem; }
 .coupon-row { display: grid; gap: .45rem; grid-template-columns: minmax(0, 1fr) auto; }
 .coupon-row input { border: 1px solid #bfcfbb; border-radius: .65rem; font-weight: 800; min-width: 0; padding: .65rem .75rem; text-transform: uppercase; }
-.coupon-row button { background: var(--forest); border: 0; border-radius: .65rem; color: white; font-weight: 900; min-height: 44px; padding: .55rem .9rem; }
+.coupon-row button { background: var(--pine); border: 1px solid var(--pine); border-radius: .65rem; color: white; font-weight: 900; min-height: 44px; min-width: 96px; padding: .55rem .9rem; transition: background .18s ease, transform .18s ease; }
+.coupon-row button:hover:not(:disabled) { background: #0d3928; transform: translateY(-1px); }
 .coupon-row button:disabled { cursor: wait; opacity: .65; }
 .coupon-message { font-size: .76rem; font-weight: 700; line-height: 1.4; margin: .55rem 0 0; }
 .coupon-message--success { color: #14734e; }
