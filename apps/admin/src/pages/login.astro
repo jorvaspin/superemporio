@@ -1,0 +1,8 @@
+---
+import { AdminLogin } from '../components/AdminLogin';
+import '../styles/admin.css';
+const requestedNext = new URL(Astro.request.url).searchParams.get('next') ?? '/';
+const nextPath = requestedNext.startsWith('/') && !requestedNext.startsWith('//') ? requestedNext : '/';
+---
+<!doctype html>
+<html lang="es-CL"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>Ingresar | Administración Superemporio</title></head><body><AdminLogin client:load nextPath={nextPath} /></body></html>
