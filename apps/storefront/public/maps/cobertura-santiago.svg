@@ -12,7 +12,7 @@
      id="defs1941" />
   <style>
     path { fill: #d9e1e5 !important; stroke: #ffffff !important; stroke-width: 1.15 !important; }
-    path[id="La Cisterna"], path[id="San Miguel"], path[id="La Granja"] { fill: #08738b !important; filter: drop-shadow(0 3px 3px rgba(25, 51, 77, .2)); }
+    path[id="La Cisterna"], path[id="San Miguel"], path[id="La Granja"] { fill: #078b2f !important; filter: drop-shadow(0 3px 3px rgba(4, 95, 34, .2)); }
     text { fill: #60717d !important; font-family: Arial, sans-serif !important; font-size: 8px !important; font-weight: 600 !important; }
     #text2124, #text2130, #text2152 { fill: #ffffff !important; font-weight: 800 !important; }
   </style>

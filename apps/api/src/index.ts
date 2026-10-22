@@ -84,7 +84,7 @@ app.get('/catalog/search', async (context) => {
   return context.json({ data });
 });
 
-const campaignPlacementSchema = z.enum(['announcement', 'hero', 'banner', 'modal']);
+const campaignPlacementSchema = z.enum(['announcement', 'hero', 'banner', 'modal', 'home_intro', 'home_offers', 'home_favorites']);
 const campaignSchema = z.object({
   placement: campaignPlacementSchema,
   title: z.string().trim().min(3).max(160),

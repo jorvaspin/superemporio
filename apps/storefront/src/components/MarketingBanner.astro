@@ -1,0 +1,28 @@
+---
+type Campaign = {
+  title: string;
+  body: string;
+  imagePath: string;
+  linkUrl: string;
+  eyebrow: string;
+};
+
+interface Props {
+  campaign: Campaign;
+  variant?: 'primary' | 'offer' | 'care';
+}
+
+const { campaign, variant = 'primary' } = Astro.props;
+---
+<a
+  class:list={['marketing-banner', `marketing-banner--${variant}`]}
+  href={campaign.linkUrl}
+  style={`--marketing-image: url('${campaign.imagePath}')`}
+>
+  <div class="marketing-banner__copy">
+    <span>{campaign.eyebrow}</span>
+    <h2>{campaign.title}</h2>
+    <p>{campaign.body}</p>
+    <b>Ver productos <i aria-hidden="true">→</i></b>
+  </div>
+</a>
