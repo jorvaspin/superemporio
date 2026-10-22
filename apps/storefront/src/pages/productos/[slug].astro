@@ -4,18 +4,16 @@ import ProductArt from '../../components/ProductArt.astro';
 import ProductCard from '../../components/ProductCard.astro';
 import ProductDetailActions from '../../components/ProductDetailActions';
 import { findProduct, products } from '../../data/catalog';
-import { formatCLP } from '@superemporio/domain';
 export const prerender = true;
 export function getStaticPaths() { return products.map((product) => ({ params: { slug: product.slug } })); }
 const product = findProduct(Astro.params.slug!);
 if (!product) return Astro.redirect('/catalogo');
 const variant = product.variants[0]!;
 const related = products.filter((item) => item.id !== product.id).slice(0, 4);
-const savings = variant.compareAtPrice ? variant.compareAtPrice - variant.price : 0;
 const jsonLd = { '@context': 'https://schema.org', '@type': 'Product', name: product.name, brand: { '@type': 'Brand', name: product.brand }, offers: { '@type': 'Offer', priceCurrency: 'CLP', price: variant.price, availability: variant.stock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock' } };
 ---
 <BaseLayout title={`${product.name} | Superemporio`} description={product.description}>
   <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
-  <div class="container product-detail"><div><ProductArt emoji={product.emoji} image={product.image} alt={product.name} tone="#e6f0dd" eager /><p class="muted" style="font-size:.78rem;margin-top:.65rem">Imagen referencial. Revisa el formato antes de comprar.</p></div><section><div class="breadcrumbs"><a href="/">Inicio</a> / <a href="/catalogo">Catálogo</a> / {product.name}</div><div class="product-brand">{product.brand}</div><h1 style="font-size:clamp(2.25rem,4vw,3.8rem);margin:.4rem 0 1rem">{product.name}</h1><p class="muted">{product.description}</p><div class="detail-price">{formatCLP(variant.price)} {variant.compareAtPrice && <span class="compare">{formatCLP(variant.compareAtPrice)}</span>}</div>{savings > 0 && <div class="eyebrow">Ahorras {formatCLP(savings)}</div>}<ProductDetailActions client:load product={product} /><div class="delivery-note">🚚 Despacho local o retiro. Verás la tarifa exacta antes de confirmar tu pedido.</div></section></div>
+  <div class="container product-detail"><div><ProductArt emoji={product.emoji} image={product.image} alt={product.name} tone="#e6f0dd" eager /><p class="muted" style="font-size:.78rem;margin-top:.65rem">Imagen referencial. Revisa el formato antes de comprar.</p></div><section><div class="breadcrumbs"><a href="/">Inicio</a> / <a href="/catalogo">Catálogo</a> / {product.name}</div><div class="product-brand">{product.brand}</div><h1 style="font-size:clamp(2.25rem,4vw,3.8rem);margin:.4rem 0 1rem">{product.name}</h1><p class="muted">{product.description}</p><ProductDetailActions client:load product={product} /><div class="delivery-note">🚚 Despacho local o retiro. Verás la tarifa exacta antes de confirmar tu pedido.</div></section></div>
   <section class="section section--white"><div class="container"><div class="section-heading"><div><div class="eyebrow">También te puede servir</div><h2>Completa tu compra.</h2></div></div><div class="product-grid">{related.map((item) => <ProductCard product={item} />)}</div></div></section>
 </BaseLayout>
