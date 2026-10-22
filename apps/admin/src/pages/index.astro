@@ -1,4 +1,8 @@
 ---
 import AdminLayout from '../layouts/AdminLayout.astro';
+import { DashboardOverview } from '../components/DashboardOverview';
+const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:8787/v1';
 ---
-<AdminLayout title="Resumen" section="Resumen"><section class="metrics"><article class="metric"><small>Ventas del mes</small><strong>$0</strong><span>Configuración inicial</span></article><article class="metric"><small>Pedidos nuevos</small><strong>0</strong><span>Sin pendientes</span></article><article class="metric"><small>Productos activos</small><strong>13</strong><span>Catálogo inicial</span></article><article class="metric"><small>Stock bajo</small><strong>0</strong><span>Todo en orden</span></article></section><section class="panel"><div class="panel-head"><h2>Pedidos recientes</h2><a href="/pedidos" class="admin-button admin-button--soft">Ver pedidos</a></div><div class="table-scroll"><table><thead><tr><th>Pedido</th><th>Cliente</th><th>Canal</th><th>Total</th><th>Estado</th></tr></thead><tbody><tr><td colspan="5" style="text-align:center;color:#607065;padding:2rem">Aún no hay pedidos. Cuando lleguen, aparecerán aquí.</td></tr></tbody></table></div></section></AdminLayout>
+<AdminLayout title="Resumen" section="Resumen">
+  <DashboardOverview client:load apiUrl={apiUrl} />
+</AdminLayout>

@@ -326,6 +326,89 @@ app.get('/admin/me', async (context) => {
   await createAdminClient(context.env).from('admin_members').update({ last_seen_at: new Date().toISOString() }).eq('user_id', admin.id);
   return context.json({ data: admin });
 });
+app.get('/admin/dashboard', async (context) => {
+  if (!await requireAdmin(context)) return context.json({ error: 'UNAUTHORIZED' }, 401);
+
+  const database = createAdminClient(context.env);
+  const timeZone = 'America/Santiago';
+  const localParts = (date: Date) => Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+    timeZone, year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(date).filter((part) => part.type !== 'literal').map((part) => [part.type, part.value]));
+  const dateKey = (date: Date) => { const parts = localParts(date); return `${parts.year}-${parts.month}-${parts.day}`; };
+  const now = new Date();
+  const todayParts = localParts(now);
+  const todayKey = `${todayParts.year}-${todayParts.month}-${todayParts.day}`;
+  const monthKey = todayKey.slice(0, 7);
+  const baseDay = new Date(Date.UTC(Number(todayParts.year), Number(todayParts.month) - 1, Number(todayParts.day), 12));
+  const monthStart = new Date(Date.UTC(Number(todayParts.year), Number(todayParts.month) - 1, 1));
+  const weekStart = new Date(baseDay.getTime() - 7 * 86_400_000);
+  const queryStart = new Date(Math.min(monthStart.getTime(), weekStart.getTime()));
+  const activeOrderStatuses = ['pending_payment', 'pending_manual', 'confirmed', 'preparing', 'ready', 'dispatched'];
+  const orderFields = 'id,public_code,channel,order_status,payment_status,fulfillment_method,contact_first_name,contact_last_name,grand_total_clp,discount_clp,created_at';
+
+  const [ordersResult, recentResult, pendingResult, productsResult, inventoryResult] = await Promise.all([
+    database.from('orders').select(orderFields).gte('created_at', queryStart.toISOString()).order('created_at', { ascending: true }),
+    database.from('orders').select(orderFields).order('created_at', { ascending: false }).limit(8),
+    database.from('orders').select('id', { count: 'exact', head: true }).in('order_status', activeOrderStatuses),
+    database.from('products').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+    database.from('inventory').select('available_quantity,low_stock_threshold'),
+  ]);
+  if (ordersResult.error || recentResult.error || pendingResult.error || productsResult.error || inventoryResult.error) {
+    return context.json({ error: 'DASHBOARD_UNAVAILABLE' }, 503);
+  }
+
+  const orders = ordersResult.data ?? [];
+  const monthOrders = orders.filter((order) => dateKey(new Date(order.created_at)).startsWith(monthKey));
+  const paidOrders = orders.filter((order) => order.payment_status === 'paid');
+  const paidMonthOrders = monthOrders.filter((order) => order.payment_status === 'paid');
+  const revenueMonth = paidMonthOrders.reduce((sum, order) => sum + Number(order.grand_total_clp), 0);
+  const discountsMonth = paidMonthOrders.reduce((sum, order) => sum + Number(order.discount_clp), 0);
+  const activeTodayOrders = orders.filter((order) => dateKey(new Date(order.created_at)) === todayKey && !['draft', 'cancelled', 'expired'].includes(order.order_status));
+  const dailySales = Array.from({ length: 7 }, (_, index) => {
+    const day = new Date(baseDay.getTime() - (6 - index) * 86_400_000);
+    const key = day.toISOString().slice(0, 10);
+    const dayOrders = paidOrders.filter((order) => dateKey(new Date(order.created_at)) === key);
+    return {
+      date: key,
+      label: new Intl.DateTimeFormat('es-CL', { weekday: 'short', day: 'numeric', timeZone: 'UTC' }).format(day).replace('.', ''),
+      revenue: dayOrders.reduce((sum, order) => sum + Number(order.grand_total_clp), 0),
+      orders: dayOrders.length,
+    };
+  });
+  const statusGroups = [
+    { key: 'pending', label: 'Pendientes', statuses: ['pending_payment', 'pending_manual', 'confirmed'] },
+    { key: 'preparing', label: 'Preparando', statuses: ['preparing', 'ready'] },
+    { key: 'dispatched', label: 'En ruta', statuses: ['dispatched'] },
+    { key: 'completed', label: 'Completados', statuses: ['completed'] },
+    { key: 'cancelled', label: 'Cancelados', statuses: ['cancelled', 'expired'] },
+  ].map((group) => ({ ...group, count: monthOrders.filter((order) => group.statuses.includes(order.order_status)).length }));
+  const channels = ['web', 'whatsapp', 'admin'].map((channel) => ({
+    channel,
+    count: monthOrders.filter((order) => order.channel === channel && !['draft', 'cancelled', 'expired'].includes(order.order_status)).length,
+  }));
+  const lowStock = (inventoryResult.data ?? []).filter((item) => Number(item.available_quantity) <= Number(item.low_stock_threshold)).length;
+
+  return context.json({ data: {
+    generatedAt: now.toISOString(),
+    totals: {
+      revenueToday: dailySales.at(-1)?.revenue ?? 0,
+      revenueWeek: dailySales.reduce((sum, day) => sum + day.revenue, 0),
+      revenueMonth,
+      ordersToday: activeTodayOrders.length,
+      paidOrdersMonth: paidMonthOrders.length,
+      averageTicketMonth: paidMonthOrders.length ? Math.round(revenueMonth / paidMonthOrders.length) : 0,
+      pendingOrders: pendingResult.count ?? 0,
+      discountsMonth,
+      activeProducts: productsResult.count ?? 0,
+      lowStock,
+    },
+    dailySales,
+    statusGroups,
+    channels,
+    recentOrders: recentResult.data ?? [],
+    month: monthKey,
+  } });
+});
 app.get('/admin/categories', async (context) => {
   if (!await requireAdmin(context)) return context.json({ error: 'UNAUTHORIZED' }, 401);
   const { data, error } = await createAdminClient(context.env).from('categories').select('*').order('sort_order').order('name');
