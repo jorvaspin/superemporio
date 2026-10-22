@@ -3,6 +3,7 @@ type Campaign = {
   title: string;
   body: string;
   imagePath: string;
+  mobileImagePath?: string;
   linkUrl: string;
   eyebrow: string;
   artworkOnly?: boolean;
@@ -19,7 +20,7 @@ const { campaign, variant = 'primary' } = Astro.props;
   class:list={['marketing-banner', `marketing-banner--${variant}`, { 'marketing-banner--artwork': campaign.artworkOnly }]}
   href={campaign.linkUrl}
   aria-label={campaign.artworkOnly ? `${campaign.title}. ${campaign.body}` : undefined}
-  style={`--marketing-image: url('${campaign.imagePath}')`}
+  style={`--marketing-image: url('${campaign.imagePath}'); --marketing-mobile-image: url('${campaign.mobileImagePath ?? campaign.imagePath}')`}
 >
   {!campaign.artworkOnly && <div class="marketing-banner__copy">
     <span>{campaign.eyebrow}</span>

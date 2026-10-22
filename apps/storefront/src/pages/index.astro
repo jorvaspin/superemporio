@@ -14,17 +14,26 @@ const categoryLooks = [
   { icon: '🏷️', label: 'Ofertas', href: '/catalogo?categoria=ofertas', image: '/campaigns/home-2026-color/franja-esenciales-color.webp', count: products.filter((product) => product.variants.some((variant) => (variant.compareAtPrice ?? variant.price) > variant.price)).length },
 ];
 
+const mobileCampaignImages: Record<string, string> = {
+  '/campaigns/home-2026-editorial/hero-nova-precio.webp': '/campaigns/home-2026-editorial/hero-nova-precio-mobile.webp',
+  '/campaigns/home-2026-editorial/hero-quix-limon.webp': '/campaigns/home-2026-editorial/hero-quix-limon-mobile.webp',
+  '/campaigns/home-2026-editorial/hero-omo-liquido.webp': '/campaigns/home-2026-editorial/hero-omo-liquido-mobile.webp',
+  '/campaigns/home-2026-editorial/hero-dove-jabon.webp': '/campaigns/home-2026-editorial/hero-dove-jabon-mobile.webp',
+  '/campaigns/home-2026-editorial/banner-lunes5.webp': '/campaigns/home-2026-editorial/banner-lunes5-mobile.webp',
+};
+const resolveMobileCampaignImage = (imagePath: string) => mobileCampaignImages[imagePath] ?? imagePath;
+
 const fallbackHeroCampaigns = [
-  { id: 'fallback-household', imagePath: '/campaigns/home-2026-editorial/hero-nova-precio.webp', title: 'Toalla de Papel Nova · Pack 2 rollos · $2.290', body: 'Precio especial en un esencial para tu hogar.', linkUrl: '/productos/toalla-de-papel-nova', eyebrow: 'PRECIO ESPECIAL', artworkOnly: true },
-  { id: 'fallback-quix', imagePath: '/campaigns/home-2026-editorial/hero-quix-limon.webp', title: 'Lavalozas Quix Limón · Botella 750 ml · $2.190', body: 'Brillo que se nota con una fórmula concentrada y fresca.', linkUrl: '/productos/lavalozas-quix-limon', eyebrow: 'BRILLO QUE SE NOTA', artworkOnly: true },
-  { id: 'fallback-omo', imagePath: '/campaigns/home-2026-editorial/hero-omo-liquido.webp', title: 'Detergente OMO Líquido · Botella 1 L · $4.290', body: 'Limpieza que rinde para el cuidado cotidiano de tu ropa.', linkUrl: '/productos/detergente-omo-liquido', eyebrow: 'LIMPIEZA QUE RINDE', artworkOnly: true },
-  { id: 'fallback-dove', imagePath: '/campaigns/home-2026-editorial/hero-dove-jabon.webp', title: 'Jabón Líquido Dove · Botella 250 ml · $2.890', body: 'Cuidado suave y humectación para todos los días.', linkUrl: '/productos/jabon-liquido-dove', eyebrow: 'CUIDADO TODOS LOS DÍAS', artworkOnly: true },
+  { id: 'fallback-household', imagePath: '/campaigns/home-2026-editorial/hero-nova-precio.webp', mobileImagePath: '/campaigns/home-2026-editorial/hero-nova-precio-mobile.webp', title: 'Toalla de Papel Nova · Pack 2 rollos · $2.290', body: 'Precio especial en un esencial para tu hogar.', linkUrl: '/productos/toalla-de-papel-nova', eyebrow: 'PRECIO ESPECIAL', artworkOnly: true },
+  { id: 'fallback-quix', imagePath: '/campaigns/home-2026-editorial/hero-quix-limon.webp', mobileImagePath: '/campaigns/home-2026-editorial/hero-quix-limon-mobile.webp', title: 'Lavalozas Quix Limón · Botella 750 ml · $2.190', body: 'Brillo que se nota con una fórmula concentrada y fresca.', linkUrl: '/productos/lavalozas-quix-limon', eyebrow: 'BRILLO QUE SE NOTA', artworkOnly: true },
+  { id: 'fallback-omo', imagePath: '/campaigns/home-2026-editorial/hero-omo-liquido.webp', mobileImagePath: '/campaigns/home-2026-editorial/hero-omo-liquido-mobile.webp', title: 'Detergente OMO Líquido · Botella 1 L · $4.290', body: 'Limpieza que rinde para el cuidado cotidiano de tu ropa.', linkUrl: '/productos/detergente-omo-liquido', eyebrow: 'LIMPIEZA QUE RINDE', artworkOnly: true },
+  { id: 'fallback-dove', imagePath: '/campaigns/home-2026-editorial/hero-dove-jabon.webp', mobileImagePath: '/campaigns/home-2026-editorial/hero-dove-jabon-mobile.webp', title: 'Jabón Líquido Dove · Botella 250 ml · $2.890', body: 'Cuidado suave y humectación para todos los días.', linkUrl: '/productos/jabon-liquido-dove', eyebrow: 'CUIDADO TODOS LOS DÍAS', artworkOnly: true },
 ];
 
 const fallbackBanners = {
-  home_intro: { title: 'Lunes de ahorro · 5% con LUNES5', body: 'Exclusivo para clientes registrados. Un uso por cuenta y válido solo los lunes.', imagePath: '/campaigns/home-2026-editorial/banner-lunes5.webp', linkUrl: '/catalogo', eyebrow: 'LUNES DE AHORRO', artworkOnly: true },
-  home_offers: { title: 'Ofertas que hacen rendir tu compra', body: 'Oportunidades reales en papel, limpieza y cuidado diario.', imagePath: '/campaigns/home-2026-color/hero-papel-color.webp', linkUrl: '/catalogo?categoria=ofertas', eyebrow: 'PRECIO Y CONVENIENCIA', artworkOnly: false },
-  home_favorites: { title: 'Todo para una casa limpia y lista', body: 'Reúne tus favoritos del hogar en una compra simple y cercana.', imagePath: '/campaigns/home-2026-color/hero-cuidado-color.webp', linkUrl: '/catalogo', eyebrow: 'ESENCIALES PARA TU HOGAR', artworkOnly: false },
+  home_intro: { title: 'Lunes de ahorro · 5% con LUNES5', body: 'Exclusivo para clientes registrados. Un uso por cuenta y válido solo los lunes.', imagePath: '/campaigns/home-2026-editorial/banner-lunes5.webp', mobileImagePath: '/campaigns/home-2026-editorial/banner-lunes5-mobile.webp', linkUrl: '/catalogo', eyebrow: 'LUNES DE AHORRO', artworkOnly: true },
+  home_offers: { title: 'Ofertas que hacen rendir tu compra', body: 'Oportunidades reales en papel, limpieza y cuidado diario.', imagePath: '/campaigns/home-2026-color/hero-papel-color.webp', mobileImagePath: '/campaigns/home-2026-color/hero-papel-color.webp', linkUrl: '/catalogo?categoria=ofertas', eyebrow: 'PRECIO Y CONVENIENCIA', artworkOnly: false },
+  home_favorites: { title: 'Todo para una casa limpia y lista', body: 'Reúne tus favoritos del hogar en una compra simple y cercana.', imagePath: '/campaigns/home-2026-color/hero-cuidado-color.webp', mobileImagePath: '/campaigns/home-2026-color/hero-cuidado-color.webp', linkUrl: '/catalogo', eyebrow: 'ESENCIALES PARA TU HOGAR', artworkOnly: false },
 };
 
 type ApiCampaign = { id: string; placement: string; title: string; body: string | null; image_path: string | null; link_url: string | null; image_contains_copy?: boolean };
@@ -40,19 +49,25 @@ if (apiUrl) {
     const payload = response.ok ? await response.json() as { data?: ApiCampaign[] } : null;
     const campaigns = payload?.data ?? [];
     const remoteHeroes = campaigns.filter((campaign) => campaign.placement === 'hero');
-    if (remoteHeroes.length) heroCampaigns = remoteHeroes.map((campaign, index) => ({
-      id: campaign.id,
-      title: campaign.title,
-      body: campaign.body ?? fallbackHeroCampaigns[index]?.body ?? '',
-      imagePath: campaign.image_path ?? fallbackHeroCampaigns[index]?.imagePath ?? fallbackHeroCampaigns[0]!.imagePath,
-      linkUrl: campaign.link_url ?? fallbackHeroCampaigns[index]?.linkUrl ?? '/catalogo',
-      eyebrow: fallbackHeroCampaigns[index]?.eyebrow ?? 'OFERTAS QUE SÍ CONVIENEN',
-      artworkOnly: campaign.image_contains_copy ?? fallbackHeroCampaigns[index]?.artworkOnly ?? false,
-    }));
+    if (remoteHeroes.length) heroCampaigns = remoteHeroes.map((campaign, index) => {
+      const imagePath = campaign.image_path ?? fallbackHeroCampaigns[index]?.imagePath ?? fallbackHeroCampaigns[0]!.imagePath;
+      return {
+        id: campaign.id,
+        title: campaign.title,
+        body: campaign.body ?? fallbackHeroCampaigns[index]?.body ?? '',
+        imagePath,
+        mobileImagePath: resolveMobileCampaignImage(imagePath),
+        linkUrl: campaign.link_url ?? fallbackHeroCampaigns[index]?.linkUrl ?? '/catalogo',
+        eyebrow: fallbackHeroCampaigns[index]?.eyebrow ?? 'OFERTAS QUE SÍ CONVIENEN',
+        artworkOnly: campaign.image_contains_copy ?? fallbackHeroCampaigns[index]?.artworkOnly ?? false,
+      };
+    });
     const resolveBanner = (placement: keyof typeof fallbackBanners) => {
       const fallback = fallbackBanners[placement];
       const campaign = campaigns.find((item) => item.placement === placement);
-      return campaign ? { title: campaign.title, body: campaign.body ?? fallback.body, imagePath: campaign.image_path ?? fallback.imagePath, linkUrl: campaign.link_url ?? fallback.linkUrl, eyebrow: fallback.eyebrow, artworkOnly: campaign.image_contains_copy ?? fallback.artworkOnly ?? false } : fallback;
+      if (!campaign) return fallback;
+      const imagePath = campaign.image_path ?? fallback.imagePath;
+      return { title: campaign.title, body: campaign.body ?? fallback.body, imagePath, mobileImagePath: resolveMobileCampaignImage(imagePath), linkUrl: campaign.link_url ?? fallback.linkUrl, eyebrow: fallback.eyebrow, artworkOnly: campaign.image_contains_copy ?? fallback.artworkOnly ?? false };
     };
     introBanner = resolveBanner('home_intro');
     offersBanner = resolveBanner('home_offers');

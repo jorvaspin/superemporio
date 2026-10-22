@@ -641,10 +641,10 @@ body.category-drawer-open { overflow: hidden; }
     background-position: 62% center;
   }
   .hero-carousel__arrows { left: .55rem; right: .55rem; }
-  .home-campaigns .hero-carousel--artwork-only { height: 120px; }
-  .home-campaigns .hero-carousel__slide--artwork { background-color: #07150c; background-position: center; background-size: 100% 100%; }
+  .home-campaigns .hero-carousel--artwork-only { aspect-ratio: 2 / 1; height: auto; }
+  .home-campaigns .hero-carousel__slide--artwork { background-color: #07150c; background-image: var(--hero-mobile-image, var(--hero-image)); background-position: center; background-size: cover; }
   .marketing-banner { background-image: linear-gradient(90deg, rgba(3,14,7,.98) 0%, rgba(4,48,22,.9) 62%, rgba(4,63,25,.48) 100%), var(--marketing-image); background-position: 62% center; height: 230px; min-height: 0; }
-  .marketing-banner--artwork { background-image: var(--marketing-image); background-position: center; background-size: 100% 100%; height: 110px; }
+  .marketing-banner--artwork { aspect-ratio: 2 / 1; background-image: var(--marketing-mobile-image, var(--marketing-image)); background-position: center; background-size: cover; height: auto; }
   .marketing-banner__copy { max-width: 72%; }
 }
 
@@ -675,9 +675,9 @@ body.category-drawer-open { overflow: hidden; }
   .home-campaigns .hero-carousel__grid { padding: 1.4rem 2rem; }
   .home-campaigns .hero-carousel h1 { font-size: 2.35rem; }
   .hero-carousel__arrows { display: none; }
-  .home-campaigns .hero-carousel--artwork-only { height: 110px; }
+  .home-campaigns .hero-carousel--artwork-only { aspect-ratio: 2 / 1; height: auto; }
   .marketing-banner { height: 245px; min-height: 0; padding: 1.25rem; }
-  .marketing-banner--artwork { height: 105px; padding: 0; }
+  .marketing-banner--artwork { aspect-ratio: 2 / 1; height: auto; padding: 0; }
   .marketing-banner__copy { align-self: flex-end; max-width: 100%; }
   .marketing-banner h2 { font-size: 1.75rem; }
   .marketing-banner p { max-width: 32ch; }
