@@ -5,6 +5,7 @@ type Campaign = {
   imagePath: string;
   linkUrl: string;
   eyebrow: string;
+  artworkOnly?: boolean;
 };
 
 interface Props {
@@ -15,14 +16,15 @@ interface Props {
 const { campaign, variant = 'primary' } = Astro.props;
 ---
 <a
-  class:list={['marketing-banner', `marketing-banner--${variant}`]}
+  class:list={['marketing-banner', `marketing-banner--${variant}`, { 'marketing-banner--artwork': campaign.artworkOnly }]}
   href={campaign.linkUrl}
+  aria-label={campaign.artworkOnly ? `${campaign.title}. ${campaign.body}` : undefined}
   style={`--marketing-image: url('${campaign.imagePath}')`}
 >
-  <div class="marketing-banner__copy">
+  {!campaign.artworkOnly && <div class="marketing-banner__copy">
     <span>{campaign.eyebrow}</span>
     <h2>{campaign.title}</h2>
     <p>{campaign.body}</p>
     <b>Ver productos <i aria-hidden="true">→</i></b>
-  </div>
+  </div>}
 </a>

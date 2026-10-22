@@ -94,6 +94,7 @@ const campaignSchema = z.object({
   startsAt: z.string().datetime().nullable().optional(),
   endsAt: z.string().datetime().nullable().optional(),
   priority: z.number().int().min(-100).max(100).default(0),
+  imageContainsCopy: z.boolean().default(false),
   active: z.boolean().default(true),
 });
 const categorySchema = z.object({
@@ -114,6 +115,7 @@ const productWriteSchema = productSchema.extend({
 const couponSchema = z.object({
   code: z.string().trim().toUpperCase().regex(/^[A-Z0-9-]{3,32}$/), type: z.enum(['fixed', 'percentage', 'free_shipping']), value: z.number().int().min(0),
   minimumSubtotalClp: z.number().int().min(0).default(0), usageLimit: z.number().int().min(1).nullable().optional(), perCustomerLimit: z.number().int().min(1).nullable().optional(),
+  requiresAccount: z.boolean().default(false), allowedWeekdays: z.array(z.number().int().min(1).max(7)).max(7).nullable().optional(),
   startsAt: z.string().datetime().nullable().optional(), endsAt: z.string().datetime().nullable().optional(), active: z.boolean().default(true),
 }).superRefine((value, issue) => { if (value.type === 'percentage' && (value.value < 1 || value.value > 100)) issue.addIssue({ code: z.ZodIssueCode.custom, message: 'El porcentaje debe estar entre 1 y 100.' }); });
 const deliveryZoneSchema = z.object({ region: z.string().trim().min(2).max(100).default('Metropolitana de Santiago'), commune: z.string().trim().min(2).max(100), feeClp: z.number().int().min(0), minimumOrderClp: z.number().int().min(0).default(0), freeShippingThresholdClp: z.number().int().min(0).nullable().optional(), active: z.boolean().default(true) });
@@ -245,7 +247,7 @@ app.get('/content/campaigns', async (context) => {
   const placement = context.req.query('placement');
   const validatedPlacement = placement ? campaignPlacementSchema.safeParse(placement) : null;
   if (validatedPlacement && !validatedPlacement.success) return context.json({ error: 'INVALID_PLACEMENT' }, 422);
-  const { data, error } = await createPublicClient(context.env).from('campaigns').select('id,placement,title,body,image_path,link_url,starts_at,ends_at,priority').order('priority', { ascending: false });
+  const { data, error } = await createPublicClient(context.env).from('campaigns').select('id,placement,title,body,image_path,link_url,starts_at,ends_at,priority,image_contains_copy').order('priority', { ascending: false });
   if (error) return context.json({ error: 'CAMPAIGNS_UNAVAILABLE' }, 503);
   const filtered = validatedPlacement?.data ? data.filter((campaign) => campaign.placement === validatedPlacement.data) : data;
   return context.json({ data: filtered });
@@ -285,16 +287,16 @@ app.delete('/carts/:token/items/:variantId', async (context) => {
 app.post('/checkout/quote', zValidator('json', z.object({ items: z.array(cartItemSchema).min(1), commune: z.string().optional(), couponCode: z.string().trim().toUpperCase().max(32).optional(), email: z.string().email().optional() })), async (context) => {
   const database = createAdminClient(context.env);
   const input = context.req.valid('json');
-  const { data, error } = await database.rpc('quote_checkout', { p_items: input.items, p_commune: input.commune ?? null, p_coupon_code: input.couponCode ?? null, p_email: input.email ?? null });
+  const customer = await getCustomer(context);
+  const { data, error } = await database.rpc('quote_checkout_for_customer', { p_items: input.items, p_commune: input.commune ?? null, p_coupon_code: input.couponCode ?? null, p_email: input.email ?? customer?.email ?? null, p_customer_id: customer?.id ?? null });
   if (error) return context.json({ error: 'QUOTE_UNAVAILABLE', detail: error.message }, 422);
   return context.json({ data });
 });
 app.post('/orders', zValidator('json', z.object({ cart: cartSchema, checkout: checkoutSchema, channel: z.enum(['web', 'whatsapp']).default('web') })), async (context) => {
   const input = context.req.valid('json'); const database = createAdminClient(context.env);
-  const { data, error } = await database.rpc('create_checkout_order', { p_items: input.cart.items, p_checkout: input.checkout, p_channel: input.channel, p_cart_token: input.cart.cartToken ?? null });
-  if (error) return context.json({ error: 'ORDER_REJECTED', detail: error.message }, 422);
   const customer = await getCustomer(context);
-  if (customer && customer.email === input.checkout.email.trim().toLowerCase() && data?.id) await database.from('orders').update({ customer_id: customer.id }).eq('id', data.id);
+  const { data, error } = await database.rpc('create_checkout_order_for_customer', { p_items: input.cart.items, p_checkout: input.checkout, p_channel: input.channel, p_cart_token: input.cart.cartToken ?? null, p_customer_id: customer?.id ?? null });
+  if (error) return context.json({ error: 'ORDER_REJECTED', detail: error.message }, 422);
   return context.json({ data }, 201);
 });
 app.get('/orders/:publicCode/status', async (context) => {
@@ -381,10 +383,10 @@ app.get('/admin/coupons', async (context) => {
   return error ? context.json({ error: 'COUPONS_UNAVAILABLE' }, 503) : context.json({ data });
 });
 app.post('/admin/coupons', zValidator('json', couponSchema), async (context) => {
-  const admin = await requireAdmin(context); if (!admin) return context.json({ error: 'UNAUTHORIZED' }, 401); const input = context.req.valid('json'); const { data, error } = await createAdminClient(context.env).from('coupons').insert({ code: input.code, type: input.type, value: input.value, minimum_subtotal_clp: input.minimumSubtotalClp, usage_limit: input.usageLimit ?? null, per_customer_limit: input.perCustomerLimit ?? null, starts_at: input.startsAt ?? null, ends_at: input.endsAt ?? null, active: input.active }).select().single(); if (error) return context.json({ error: 'COUPON_CREATE_FAILED' }, 422); await audit(context, admin, 'create', 'coupon', data.id, null, data); return context.json({ data }, 201);
+  const admin = await requireAdmin(context); if (!admin) return context.json({ error: 'UNAUTHORIZED' }, 401); const input = context.req.valid('json'); const { data, error } = await createAdminClient(context.env).from('coupons').insert({ code: input.code, type: input.type, value: input.value, minimum_subtotal_clp: input.minimumSubtotalClp, usage_limit: input.usageLimit ?? null, per_customer_limit: input.perCustomerLimit ?? null, requires_account: input.requiresAccount, allowed_weekdays: input.allowedWeekdays ?? null, starts_at: input.startsAt ?? null, ends_at: input.endsAt ?? null, active: input.active }).select().single(); if (error) return context.json({ error: 'COUPON_CREATE_FAILED' }, 422); await audit(context, admin, 'create', 'coupon', data.id, null, data); return context.json({ data }, 201);
 });
 app.put('/admin/coupons/:id', zValidator('json', couponSchema), async (context) => {
-  const admin = await requireAdmin(context); if (!admin) return context.json({ error: 'UNAUTHORIZED' }, 401); const id = z.string().uuid().safeParse(context.req.param('id')); if (!id.success) return context.json({ error: 'INVALID_COUPON' }, 422); const input = context.req.valid('json'); const database = createAdminClient(context.env); const { data: old } = await database.from('coupons').select('*').eq('id', id.data).maybeSingle(); if (!old) return context.json({ error: 'COUPON_NOT_FOUND' }, 404); const { data, error } = await database.from('coupons').update({ code: input.code, type: input.type, value: input.value, minimum_subtotal_clp: input.minimumSubtotalClp, usage_limit: input.usageLimit ?? null, per_customer_limit: input.perCustomerLimit ?? null, starts_at: input.startsAt ?? null, ends_at: input.endsAt ?? null, active: input.active }).eq('id', id.data).select().single(); if (error) return context.json({ error: 'COUPON_UPDATE_FAILED' }, 422); await audit(context, admin, 'update', 'coupon', id.data, old, data); return context.json({ data });
+  const admin = await requireAdmin(context); if (!admin) return context.json({ error: 'UNAUTHORIZED' }, 401); const id = z.string().uuid().safeParse(context.req.param('id')); if (!id.success) return context.json({ error: 'INVALID_COUPON' }, 422); const input = context.req.valid('json'); const database = createAdminClient(context.env); const { data: old } = await database.from('coupons').select('*').eq('id', id.data).maybeSingle(); if (!old) return context.json({ error: 'COUPON_NOT_FOUND' }, 404); const { data, error } = await database.from('coupons').update({ code: input.code, type: input.type, value: input.value, minimum_subtotal_clp: input.minimumSubtotalClp, usage_limit: input.usageLimit ?? null, per_customer_limit: input.perCustomerLimit ?? null, requires_account: input.requiresAccount, allowed_weekdays: input.allowedWeekdays ?? null, starts_at: input.startsAt ?? null, ends_at: input.endsAt ?? null, active: input.active }).eq('id', id.data).select().single(); if (error) return context.json({ error: 'COUPON_UPDATE_FAILED' }, 422); await audit(context, admin, 'update', 'coupon', id.data, old, data); return context.json({ data });
 });
 app.get('/admin/campaigns', async (context) => {
   if (!await requireAdmin(context)) return context.json({ error: 'UNAUTHORIZED' }, 401);
@@ -397,7 +399,7 @@ app.post('/admin/campaigns', zValidator('json', campaignSchema), async (context)
   const { data, error } = await createAdminClient(context.env).from('campaigns').insert({
     placement: input.placement, title: input.title, body: input.body ?? null, image_path: input.imagePath ?? null,
     link_url: input.linkUrl ?? null, starts_at: input.startsAt ?? null, ends_at: input.endsAt ?? null,
-    priority: input.priority, active: input.active,
+    priority: input.priority, image_contains_copy: input.imageContainsCopy, active: input.active,
   }).select().single();
   if (error) return context.json({ error: 'CAMPAIGN_CREATE_FAILED' }, 422); await audit(context, admin, 'create', 'campaign', data.id, null, data); return context.json({ data }, 201);
 });
@@ -426,6 +428,7 @@ app.put('/admin/campaigns/:id', zValidator('json', campaignSchema.partial()), as
     ...(input.body !== undefined ? { body: input.body } : {}), ...(input.imagePath !== undefined ? { image_path: input.imagePath } : {}),
     ...(input.linkUrl !== undefined ? { link_url: input.linkUrl } : {}), ...(input.startsAt !== undefined ? { starts_at: input.startsAt } : {}),
     ...(input.endsAt !== undefined ? { ends_at: input.endsAt } : {}), ...(input.priority !== undefined ? { priority: input.priority } : {}),
+    ...(input.imageContainsCopy !== undefined ? { image_contains_copy: input.imageContainsCopy } : {}),
     ...(input.active !== undefined ? { active: input.active } : {}),
   };
   const database = createAdminClient(context.env); const { data: old } = await database.from('campaigns').select('*').eq('id', id.data).maybeSingle();

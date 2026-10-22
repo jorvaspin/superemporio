@@ -72,9 +72,10 @@ export default function CheckoutForm({ apiUrl }: Props) {
   }, [apiUrl]);
 
   async function requestQuote(couponCode?: string, email?: string) {
+    const session = readCustomerSession();
     const response = await fetch(`${apiUrl}/checkout/quote`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(session ? { Authorization: `Bearer ${session.accessToken}` } : {}) },
       body: JSON.stringify({
         items,
         commune: fulfillment === 'delivery' && commune ? commune : undefined,

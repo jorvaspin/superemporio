@@ -6,14 +6,15 @@ type HeroCampaign = {
   imagePath: string;
   linkUrl: string;
   eyebrow?: string;
+  artworkOnly?: boolean;
 };
 
 interface Props { campaigns: HeroCampaign[]; }
 const { campaigns } = Astro.props;
 ---
 <section class="hero-carousel" data-hero-carousel aria-roledescription="carrusel" aria-label="Ofertas destacadas">
-  {campaigns.map((campaign, index) => <article class="hero-carousel__slide" data-hero-slide data-active={index === 0 ? 'true' : 'false'} aria-hidden={index === 0 ? 'false' : 'true'} inert={index === 0 ? undefined : true} style={`--hero-image: url('${campaign.imagePath}')`}>
-    <div class="container hero-carousel__grid">
+  {campaigns.map((campaign, index) => <article class:list={['hero-carousel__slide', { 'hero-carousel__slide--artwork': campaign.artworkOnly }]} data-hero-slide data-active={index === 0 ? 'true' : 'false'} aria-hidden={index === 0 ? 'false' : 'true'} inert={index === 0 ? undefined : true} style={`--hero-image: url('${campaign.imagePath}')`}>
+    {campaign.artworkOnly ? <a class="hero-carousel__artwork-link" href={campaign.linkUrl}><span class="sr-only">{campaign.title}. {campaign.body}</span></a> : <div class="container hero-carousel__grid">
       <div class="hero-carousel__copy">
         <span class="sale-pill">{campaign.eyebrow ?? 'OFERTAS QUE SÍ CONVIENEN'}</span>
         <p class="hero-carousel__kicker">Compra inteligente para tu hogar</p>
@@ -21,7 +22,7 @@ const { campaigns } = Astro.props;
         <p>{campaign.body}</p>
         <div class="hero-actions"><a class="button button--coral" href={campaign.linkUrl}>Ver oferta <span aria-hidden="true">→</span></a><a class="hero-link" href="/catalogo">Explorar todo el catálogo</a></div>
       </div>
-    </div>
+    </div>}
   </article>)}
   {campaigns.length > 1 && <div class="hero-carousel__controls"><div class="hero-carousel__arrows"><button type="button" class="hero-carousel__arrow" data-hero-prev aria-label="Ver campaña anterior">↑</button><button type="button" class="hero-carousel__arrow" data-hero-next aria-label="Ver campaña siguiente">↓</button></div><div class="hero-carousel__dots" role="tablist" aria-label="Seleccionar campaña">{campaigns.map((campaign, index) => <button type="button" role="tab" aria-label={`Ver campaña ${index + 1}: ${campaign.title}`} aria-selected={index === 0 ? 'true' : 'false'} data-hero-dot data-index={index}></button>)}</div></div>}
 </section>
