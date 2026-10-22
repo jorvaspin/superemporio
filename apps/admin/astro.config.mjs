@@ -9,5 +9,10 @@ export default defineConfig({
   site: 'https://admin.superemporio.cl',
   // The workspace keeps its local secrets in the repository root. Astro runs
   // this app from apps/admin, so Vite needs an explicit env directory.
-  vite: { envDir: '../..' },
+  vite: {
+    envDir: '../..',
+    resolve: {
+      alias: { 'react-dom/server': 'react-dom/server.edge' },
+    },
+  },
 });

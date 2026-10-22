@@ -3,4 +3,5 @@ export type Env = {
   FLOW_API_KEY?: string; FLOW_SECRET_KEY?: string; FLOW_BASE_URL?: string;
   FLOW_RETURN_URL?: string; FLOW_CONFIRMATION_URL?: string; WHATSAPP_PHONE?: string;
   RESEND_API_KEY?: string; FROM_EMAIL?: string; PUBLIC_STORE_URL: string; PUBLIC_ADMIN_URL: string;
+  PUBLIC_PREVIEW_STORE_URL?: string; PUBLIC_PREVIEW_ADMIN_URL?: string;
 };

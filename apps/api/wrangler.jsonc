@@ -4,9 +4,14 @@
   "main": "src/index.ts",
   "compatibility_date": "2025-03-01",
   "workers_dev": true,
+  "routes": [
+    { "pattern": "api.superemporio.cl", "custom_domain": true }
+  ],
   "triggers": { "crons": ["*/5 * * * *"] },
   "vars": {
-    "PUBLIC_STORE_URL": "http://127.0.0.1:4321",
-    "PUBLIC_ADMIN_URL": "http://127.0.0.1:4322"
+    "PUBLIC_STORE_URL": "https://www.superemporio.cl",
+    "PUBLIC_ADMIN_URL": "https://admin.superemporio.cl",
+    "PUBLIC_PREVIEW_STORE_URL": "https://superemporio-storefront.pages.dev",
+    "PUBLIC_PREVIEW_ADMIN_URL": "https://superemporio-admin.pages.dev"
   }
 }

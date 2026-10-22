@@ -14,7 +14,12 @@ type ApiContext = Context<{ Bindings: Env }>;
 type AdminSession = { id: string; role: 'owner' | 'operator' };
 app.use('*', cors({
   origin: (origin, context) => {
-    const configured = [context.env.PUBLIC_STORE_URL, context.env.PUBLIC_ADMIN_URL].filter(Boolean);
+    const configured = [
+      context.env.PUBLIC_STORE_URL,
+      context.env.PUBLIC_ADMIN_URL,
+      context.env.PUBLIC_PREVIEW_STORE_URL,
+      context.env.PUBLIC_PREVIEW_ADMIN_URL,
+    ].filter(Boolean);
     if (configured.includes(origin)) return origin;
     try {
       const url = new URL(origin);
