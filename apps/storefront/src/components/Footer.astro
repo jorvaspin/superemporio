@@ -1,12 +1,33 @@
 <footer class="site-footer">
   <div class="container footer-grid">
-    <div>
-      <a class="brand" href="/"><span class="brand-mark">S</span> superemporio</a>
-      <p>Lo esencial para tu hogar, a precios que dan tranquilidad.</p>
+    <div class="footer-brand">
+      <a class="footer-logo" href="/" aria-label="Superemporio, inicio">
+        <img src="/brand/superemporio-logo.png" alt="superemporio.cl" />
+      </a>
+      <p>Lo esencial para tu hogar, con precios claros y despacho cercano.</p>
+      <a class="footer-delivery" href="/despacho"><span aria-hidden="true">🚚</span><span><strong>Despacho local $2.990</strong><small>La Cisterna · San Miguel · La Granja</small></span></a>
     </div>
-    <div><h3>Comprar</h3><a href="/catalogo">Catálogo</a><a href="/catalogo?categoria=ofertas">Ofertas</a><a href="/carrito">Carrito</a></div>
-    <div><h3>Información</h3><a href="/despacho">Despacho y retiro</a><a href="/cambios">Cambios y devoluciones</a><a href="/privacidad">Privacidad</a></div>
-    <div><h3>Atención</h3><a href="/contacto">Contáctanos</a><a href="https://wa.me/56900000000">WhatsApp</a><a href="mailto:hola@superemporio.cl">hola@superemporio.cl</a></div>
+    <nav class="footer-column" aria-label="Comprar">
+      <h3>Comprar</h3>
+      <a href="/catalogo">Catálogo</a>
+      <a href="/catalogo?categoria=ofertas">Ofertas</a>
+      <a href="/carrito">Carrito</a>
+    </nav>
+    <nav class="footer-column" aria-label="Información">
+      <h3>Información</h3>
+      <a href="/despacho">Despacho y retiro</a>
+      <a href="/cambios">Cambios y devoluciones</a>
+      <a href="/privacidad">Privacidad</a>
+    </nav>
+    <nav class="footer-column footer-column--contact" aria-label="Atención al cliente">
+      <h3>Atención</h3>
+      <a href="/contacto">Contáctanos</a>
+      <a href="https://wa.me/56900000000">WhatsApp</a>
+      <a href="mailto:hola@superemporio.cl">hola@superemporio.cl</a>
+    </nav>
   </div>
-  <div class="container footer-bottom">© {new Date().getFullYear()} Superemporio · Todos los precios incluyen IVA.</div>
+  <div class="container footer-bottom">
+    <span>© {new Date().getFullYear()} Superemporio · Todos los precios incluyen IVA.</span>
+    <span>Compra simple, segura y cercana.</span>
+  </div>
 </footer>
