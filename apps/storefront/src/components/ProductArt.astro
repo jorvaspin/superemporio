@@ -1,5 +1,9 @@
 ---
-interface Props { emoji: string; tone?: string; class?: string; }
-const { emoji, tone = '#e8f2df', class: className = '' } = Astro.props;
+interface Props { emoji: string; image?: string; alt?: string; tone?: string; class?: string; eager?: boolean; }
+const { emoji, image, alt = '', tone = '#e8f2df', class: className = '', eager = false } = Astro.props;
 ---
-<div class:list={['product-art', className]} style={`--art-bg:${tone}`} aria-hidden="true"><span>{emoji}</span></div>
+<div class:list={['product-art', className]} style={`--art-bg:${tone}`}>
+  {image
+    ? <img src={image} alt={alt} loading={eager ? 'eager' : 'lazy'} decoding="async" />
+    : <span aria-hidden="true">{emoji}</span>}
+</div>

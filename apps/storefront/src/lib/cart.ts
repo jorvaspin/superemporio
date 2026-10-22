@@ -1,7 +1,7 @@
 import { atom, computed } from 'nanostores';
 import type { CatalogProduct, CatalogVariant } from '@superemporio/domain';
 
-export type CartLine = { variant: CatalogVariant; product: Pick<CatalogProduct, 'id' | 'slug' | 'name' | 'brand' | 'emoji'>; quantity: number };
+export type CartLine = { variant: CatalogVariant; product: Pick<CatalogProduct, 'id' | 'slug' | 'name' | 'brand' | 'emoji' | 'image'>; quantity: number };
 const stored = typeof window !== 'undefined' ? window.localStorage.getItem('superemporio-cart') : null;
 export const $cart = atom<CartLine[]>(stored ? JSON.parse(stored) as CartLine[] : []);
 export const $isCartOpen = atom(false);

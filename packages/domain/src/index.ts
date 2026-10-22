@@ -27,7 +27,7 @@ export type CatalogVariant = {
 };
 export type CatalogProduct = {
   id: string; slug: string; name: string; brand: string; description: string;
-  category: string; badge?: string; emoji: string; variants: CatalogVariant[];
+  category: string; badge?: string; emoji: string; image: string; variants: CatalogVariant[];
 };
 
 export const canTransitionOrder = (from: OrderStatus, to: OrderStatus) => {

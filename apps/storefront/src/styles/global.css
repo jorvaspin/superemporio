@@ -56,6 +56,7 @@ h2 { font-size: clamp(1.75rem, 3vw, 2.5rem); letter-spacing: -.045em; margin-bot
 .product-art { align-items: center; background: var(--art-bg, #e8f2df); display: flex; font-size: 4rem; height: 190px; justify-content: center; overflow: hidden; position: relative; }
 .product-art::after { background: rgba(255,255,255,.55); border-radius: 50%; content: ''; height: 145px; position: absolute; right: -35px; top: -52px; width: 145px; }
 .product-art span { filter: drop-shadow(0 12px 8px rgba(0,0,0,.14)); position: relative; z-index: 1; }
+.product-art img { height: 88%; mix-blend-mode: multiply; object-fit: contain; position: relative; width: 88%; z-index: 1; }
 .product-badge { background: var(--brand-navy); border-radius: 999px; color: white; font-size: .68rem; font-weight: 800; left: .75rem; padding: .35rem .55rem; position: absolute; top: .75rem; }
 .product-content { padding: 1rem; }
 .product-brand { color: var(--leaf); font-size: .72rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
@@ -115,6 +116,7 @@ h2 { font-size: clamp(1.75rem, 3vw, 2.5rem); letter-spacing: -.045em; margin-bot
 @keyframes catalog-products-update { from { opacity: .55; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 .product-detail { display: grid; gap: clamp(2rem, 6vw, 5rem); grid-template-columns: minmax(0, .9fr) minmax(0, 1fr); padding: 3.5rem 0 5rem; }
 .product-detail .product-art { border-radius: var(--radius-lg); font-size: 8rem; height: min(48vw, 500px); }
+.product-detail .product-art img { filter: drop-shadow(0 22px 24px rgba(11,32,22,.12)); height: 86%; width: 86%; }
 .variant-options { display: grid; gap: .6rem; margin: 1.3rem 0; }
 .variant-option { background: white; border: 1px solid var(--line); border-radius: .8rem; display: flex; justify-content: space-between; padding: .9rem; text-align: left; }
 .variant-option[data-active='true'] { border: 2px solid var(--leaf); background: #f4f9f0; }
@@ -129,6 +131,7 @@ h2 { font-size: clamp(1.75rem, 3vw, 2.5rem); letter-spacing: -.045em; margin-bot
 .cart-lines { flex: 1; overflow: auto; padding: 1rem 0; }
 .cart-line { border-bottom: 1px solid var(--line); padding: .8rem 0; }
 .cart-emoji { align-items: center; background: var(--moss); border-radius: .7rem; display: flex; font-size: 1.75rem; height: 52px; justify-content: center; width: 52px; }
+.cart-emoji img { height: 44px; object-fit: contain; width: 44px; }
 .cart-line-info { flex: 1; font-size: .82rem; }
 .cart-line-info strong { display: block; }
 .quantity { align-items: center; border: 1px solid var(--line); border-radius: 99px; display: inline-flex; gap: .45rem; margin-top: .45rem; padding: .15rem; }
