@@ -8,22 +8,22 @@ import { products } from '../data/catalog';
 const dealProducts = products.filter((product) => product.variants.some((variant) => variant.compareAtPrice)).slice(0, 5);
 const popularProducts = products.slice(0, 10);
 const categoryLooks = [
-  { icon: '🧻', label: 'Papel y cocina', href: '/catalogo?categoria=papel-y-cocina', image: '/campaigns/home-2026/banner-ofertas-verde.webp', count: products.filter((product) => product.category === 'papel-y-cocina').length },
-  { icon: '✨', label: 'Limpieza', href: '/catalogo?categoria=limpieza', image: '/campaigns/home-2026/hero-esenciales-verde.webp', count: products.filter((product) => product.category === 'limpieza').length },
-  { icon: '🫧', label: 'Aseo personal', href: '/catalogo?categoria=aseo-personal', image: '/campaigns/home-2026/banner-cuidado-hogar.webp', count: products.filter((product) => product.category === 'aseo-personal').length },
-  { icon: '🏷️', label: 'Ofertas', href: '/catalogo?categoria=ofertas', image: '/campaigns/home-2026/banner-ahorro-mensual.webp', count: products.filter((product) => product.variants.some((variant) => (variant.compareAtPrice ?? variant.price) > variant.price)).length },
+  { icon: '🧻', label: 'Papel y cocina', href: '/catalogo?categoria=papel-y-cocina', image: '/campaigns/home-2026-color/hero-papel-color.webp', count: products.filter((product) => product.category === 'papel-y-cocina').length },
+  { icon: '✨', label: 'Limpieza', href: '/catalogo?categoria=limpieza', image: '/campaigns/home-2026-color/hero-ahorro-color.webp', count: products.filter((product) => product.category === 'limpieza').length },
+  { icon: '🫧', label: 'Aseo personal', href: '/catalogo?categoria=aseo-personal', image: '/campaigns/home-2026-color/hero-cuidado-color.webp', count: products.filter((product) => product.category === 'aseo-personal').length },
+  { icon: '🏷️', label: 'Ofertas', href: '/catalogo?categoria=ofertas', image: '/campaigns/home-2026-color/franja-esenciales-color.webp', count: products.filter((product) => product.variants.some((variant) => (variant.compareAtPrice ?? variant.price) > variant.price)).length },
 ];
 
 const fallbackHeroCampaigns = [
-  { id: 'fallback-household', imagePath: '/campaigns/home-2026/hero-esenciales-verde.webp', title: 'Más ahorro para tu casa.', body: 'Papel, limpieza y productos esenciales con precios claros y despacho local.', linkUrl: '/catalogo?categoria=ofertas', eyebrow: 'OFERTAS QUE SÍ CONVIENEN' },
-  { id: 'fallback-packs', imagePath: '/campaigns/home-2026/banner-ofertas-verde.webp', title: 'Packs que rinden más.', body: 'Abastece tu hogar con formatos convenientes para ahorrar todos los días.', linkUrl: '/catalogo?categoria=papel-y-cocina', eyebrow: 'PACKS AHORRO' },
-  { id: 'fallback-cleaning', imagePath: '/campaigns/home-2026/banner-cuidado-hogar.webp', title: 'Una casa fresca, todos los días.', body: 'Soluciones de limpieza para cada rincón, con precios especiales esta semana.', linkUrl: '/catalogo?categoria=limpieza', eyebrow: 'LIMPIEZA PARA EL HOGAR' },
+  { id: 'fallback-household', imagePath: '/campaigns/home-2026-color/hero-ahorro-color.webp', title: 'Más ahorro para tu casa.', body: 'Papel, limpieza y productos esenciales con precios claros y despacho local.', linkUrl: '/catalogo?categoria=ofertas', eyebrow: 'OFERTAS QUE SÍ CONVIENEN' },
+  { id: 'fallback-packs', imagePath: '/campaigns/home-2026-color/hero-papel-color.webp', title: 'Packs que rinden más.', body: 'Abastece tu hogar con formatos convenientes para ahorrar todos los días.', linkUrl: '/catalogo?categoria=papel-y-cocina', eyebrow: 'PACKS AHORRO' },
+  { id: 'fallback-cleaning', imagePath: '/campaigns/home-2026-color/hero-cuidado-color.webp', title: 'Una casa fresca, todos los días.', body: 'Soluciones de limpieza para cada rincón, con precios especiales esta semana.', linkUrl: '/catalogo?categoria=limpieza', eyebrow: 'LIMPIEZA PARA EL HOGAR' },
 ];
 
 const fallbackBanners = {
-  home_intro: { title: 'Ahorra en lo que usas todos los días', body: 'Formatos convenientes, despacho local y precios claros para abastecer tu hogar.', imagePath: '/campaigns/home-2026/banner-ahorro-mensual.webp', linkUrl: '/catalogo', eyebrow: 'COMPRA INTELIGENTE' },
-  home_offers: { title: 'Ofertas que hacen rendir tu compra', body: 'Oportunidades reales en papel, limpieza y cuidado diario.', imagePath: '/campaigns/home-2026/banner-ofertas-verde.webp', linkUrl: '/catalogo?categoria=ofertas', eyebrow: 'PRECIO Y CONVENIENCIA' },
-  home_favorites: { title: 'Todo para una casa limpia y lista', body: 'Reúne tus favoritos del hogar en una compra simple y cercana.', imagePath: '/campaigns/home-2026/banner-cuidado-hogar.webp', linkUrl: '/catalogo', eyebrow: 'ESENCIALES PARA TU HOGAR' },
+  home_intro: { title: 'Ahorra en lo que usas todos los días', body: 'Formatos convenientes, despacho local y precios claros para abastecer tu hogar.', imagePath: '/campaigns/home-2026-color/franja-esenciales-color.webp', linkUrl: '/catalogo', eyebrow: 'COMPRA INTELIGENTE' },
+  home_offers: { title: 'Ofertas que hacen rendir tu compra', body: 'Oportunidades reales en papel, limpieza y cuidado diario.', imagePath: '/campaigns/home-2026-color/hero-papel-color.webp', linkUrl: '/catalogo?categoria=ofertas', eyebrow: 'PRECIO Y CONVENIENCIA' },
+  home_favorites: { title: 'Todo para una casa limpia y lista', body: 'Reúne tus favoritos del hogar en una compra simple y cercana.', imagePath: '/campaigns/home-2026-color/hero-cuidado-color.webp', linkUrl: '/catalogo', eyebrow: 'ESENCIALES PARA TU HOGAR' },
 };
 
 type ApiCampaign = { id: string; placement: string; title: string; body: string | null; image_path: string | null; link_url: string | null };

@@ -270,26 +270,27 @@ body.category-drawer-open { overflow: hidden; }
 .category-drawer__footer strong { font-size: .8rem; }
 .category-drawer__footer small { color: #738079; font-size: .67rem; margin-top: .12rem; }
 
-.home-campaigns { background: #fff; padding: 1.25rem 0 .75rem; }
-.home-campaigns .hero-carousel { border-radius: 1.15rem; min-height: clamp(390px, 29vw, 470px); }
-.home-campaigns .hero-carousel__grid { min-height: clamp(390px, 29vw, 470px); padding: 2.25rem clamp(3.5rem, 6vw, 6.5rem); }
+.home-campaigns { background: #fff; padding: 1rem 0 .55rem; }
+.home-campaigns .hero-carousel { border-radius: 1.15rem; height: clamp(255px, 20.3vw, 300px); min-height: 0; }
+.home-campaigns .hero-carousel__grid { height: 100%; min-height: 0; padding: 1.35rem clamp(3.5rem, 6vw, 6rem); }
 .home-campaigns .hero-carousel__slide { border-radius: 1rem; }
 .home-campaigns .hero-carousel__copy { align-self: center; }
-.home-campaigns .hero-carousel h1 { font-size: clamp(2.75rem, 4.35vw, 4.6rem); margin-bottom: .8rem; max-width: 10ch; }
-.home-campaigns .hero-carousel__kicker { font-size: .86rem; margin: .65rem 0 .3rem; }
-.home-campaigns .hero-carousel__copy > p:last-of-type { font-size: .86rem; line-height: 1.5; margin-bottom: 0; max-width: 42ch; }
-.home-campaigns .hero-actions { margin-top: 1rem; }
-.home-campaigns .hero-actions .button { min-height: 44px; padding-block: .6rem; }
-.home-banner-section { background: #fff; padding: .75rem 0 1.25rem; }
+.home-campaigns .hero-carousel h1 { font-size: clamp(2.15rem, 3.2vw, 3.25rem); margin-bottom: .45rem; max-width: 11ch; }
+.home-campaigns .hero-carousel__kicker { font-size: .77rem; margin: .4rem 0 .2rem; }
+.home-campaigns .hero-carousel__copy > p:last-of-type { font-size: .78rem; line-height: 1.42; margin-bottom: 0; max-width: 40ch; }
+.home-campaigns .hero-actions { margin-top: .7rem; }
+.home-campaigns .hero-actions .button { min-height: 38px; padding: .48rem .85rem; }
+.home-campaigns .hero-link { font-size: .75rem; }
+.home-banner-section { background: #fff; padding: .55rem 0 1rem; }
 .home-banner-section--intro { padding-top: 0; }
 .home-banner-section--care { padding-bottom: 3rem; }
-.marketing-banner { background-color: #07150c; background-image: linear-gradient(90deg, rgba(4,14,8,.98), rgba(4,63,25,.78) 40%, rgba(4,63,25,.04) 73%), var(--marketing-image); background-position: center; background-repeat: no-repeat; background-size: cover; border-radius: 1rem; color: #fff; display: flex; min-height: clamp(190px, 17vw, 255px); overflow: hidden; padding: clamp(1.5rem, 3.2vw, 3rem) clamp(1.5rem, 4.5vw, 4.5rem); position: relative; }
+.marketing-banner { background-color: #07150c; background-image: linear-gradient(90deg, rgba(3,12,7,.98), rgba(3,47,23,.82) 35%, rgba(3,47,23,.08) 68%), var(--marketing-image); background-position: center; background-repeat: no-repeat; background-size: cover; border-radius: 1rem; color: #fff; display: flex; height: clamp(135px, 10.5vw, 160px); min-height: 0; overflow: hidden; padding: 1rem clamp(2rem, 4.5vw, 4.2rem); position: relative; }
 .marketing-banner::after { border: 1px solid rgba(255,255,255,.15); border-radius: inherit; content: ''; inset: 0; pointer-events: none; position: absolute; }
-.marketing-banner__copy { align-self: center; max-width: 520px; position: relative; z-index: 1; }
-.marketing-banner__copy > span { color: #bde7c5; font-size: .68rem; font-weight: 950; letter-spacing: .12em; }
-.marketing-banner h2 { color: #fff; font-size: clamp(1.75rem, 3vw, 3rem); line-height: 1; margin: .55rem 0 .65rem; max-width: 14ch; }
-.marketing-banner p { color: #e1eee3; font-size: clamp(.78rem, 1vw, .95rem); line-height: 1.55; margin-bottom: 1.15rem; max-width: 43ch; }
-.marketing-banner b { align-items: center; background: #fff; border-radius: 999px; color: var(--brand-black); display: inline-flex; font-size: .76rem; gap: .45rem; min-height: 40px; padding: .55rem .9rem; }
+.marketing-banner__copy { align-self: center; max-width: 610px; position: relative; z-index: 1; }
+.marketing-banner__copy > span { color: #d8f4dc; font-size: .59rem; font-weight: 950; letter-spacing: .12em; }
+.marketing-banner h2 { color: #fff; font-size: clamp(1.45rem, 2.15vw, 2.05rem); line-height: 1; margin: .3rem 0 .28rem; max-width: 24ch; }
+.marketing-banner p { color: #e1eee3; font-size: .7rem; line-height: 1.35; margin: 0 0 .45rem; max-width: 62ch; }
+.marketing-banner b { align-items: center; background: #fff; border-radius: 999px; color: var(--brand-black); display: inline-flex; font-size: .68rem; gap: .4rem; min-height: 31px; padding: .38rem .72rem; }
 .marketing-banner b i { color: var(--brand-green); font-style: normal; }
 .marketing-banner:hover b { background: var(--brand-green); color: #fff; }
 .marketing-banner:hover b i { color: #fff; }
@@ -536,7 +537,8 @@ body.category-drawer-open { overflow: hidden; }
   .category-shortcuts a { font-size: .72rem; }
   .home-campaigns { padding: .75rem 0; }
   .home-campaigns__grid { grid-template-columns: 1fr; }
-  .home-campaigns .hero-carousel, .home-campaigns .hero-carousel__grid { min-height: 390px; }
+  .home-campaigns .hero-carousel { height: 355px; min-height: 0; }
+  .home-campaigns .hero-carousel__grid { height: 100%; min-height: 0; }
   .home-campaigns .hero-carousel__grid { padding: 1.5rem; }
   .home-side-promo { min-height: 180px; }
   .home-side-promo strong { max-width: 13ch; }
@@ -617,7 +619,7 @@ body.category-drawer-open { overflow: hidden; }
     background-position: 62% center;
   }
   .hero-carousel__arrows { left: .55rem; right: .55rem; }
-  .marketing-banner { background-image: linear-gradient(90deg, rgba(3,14,7,.98) 0%, rgba(4,48,22,.9) 62%, rgba(4,63,25,.48) 100%), var(--marketing-image); background-position: 62% center; min-height: 285px; }
+  .marketing-banner { background-image: linear-gradient(90deg, rgba(3,14,7,.98) 0%, rgba(4,48,22,.9) 62%, rgba(4,63,25,.48) 100%), var(--marketing-image); background-position: 62% center; height: 230px; min-height: 0; }
   .marketing-banner__copy { max-width: 72%; }
 }
 
@@ -626,7 +628,7 @@ body.category-drawer-open { overflow: hidden; }
   .home-campaigns .hero-carousel__grid { padding: 1.4rem 2rem; }
   .home-campaigns .hero-carousel h1 { font-size: 2.35rem; }
   .hero-carousel__arrows { display: none; }
-  .marketing-banner { min-height: 310px; padding: 1.4rem; }
+  .marketing-banner { height: 245px; min-height: 0; padding: 1.25rem; }
   .marketing-banner__copy { align-self: flex-end; max-width: 100%; }
   .marketing-banner h2 { font-size: 1.75rem; }
   .marketing-banner p { max-width: 32ch; }
