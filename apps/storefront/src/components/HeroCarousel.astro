@@ -45,7 +45,7 @@ const artworkOnly = campaigns.every((campaign) => campaign.artworkOnly);
       dots.forEach((dot, dotIndex) => dot.setAttribute('aria-selected', String(dotIndex === activeIndex)));
     };
     const stop = () => { if (interval) window.clearInterval(interval); interval = undefined; };
-    const start = () => { if (!reducedMotion && slides.length > 1) { stop(); interval = window.setInterval(() => show(activeIndex + 1), 6500); } };
+    const start = () => { if (!reducedMotion && slides.length > 1) { stop(); interval = window.setInterval(() => show(activeIndex + 1), 5000); } };
 
     previous?.addEventListener('click', () => { show(activeIndex - 1); start(); });
     next?.addEventListener('click', () => { show(activeIndex + 1); start(); });
