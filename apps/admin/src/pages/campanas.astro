@@ -2,9 +2,8 @@
 import AdminLayout from '../layouts/AdminLayout.astro';
 import { CampaignManager } from '../components/CampaignManager';
 const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:8787/v1';
-const supabaseUrl = import.meta.env.SUPABASE_URL ?? '';
-const anonKey = import.meta.env.SUPABASE_ANON_KEY ?? '';
+const storeUrl = import.meta.env.PUBLIC_STORE_URL ?? 'http://localhost:4321';
 ---
 <AdminLayout title="Campañas" section="Campañas">
-  {supabaseUrl && anonKey ? <CampaignManager client:load apiUrl={apiUrl} supabaseUrl={supabaseUrl} anonKey={anonKey} /> : <div class="notice-admin">Faltan las variables de Supabase para habilitar el editor de campañas en este ambiente.</div>}
+  <CampaignManager client:load apiUrl={apiUrl} storeUrl={storeUrl} />
 </AdminLayout>

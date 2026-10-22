@@ -1,9 +1,10 @@
 import { useEffect, useState, type SyntheticEvent } from 'react';
 import { closeAdminSession, restoreAdminToken } from './adminSession';
 
+type Placement = 'announcement' | 'hero' | 'banner' | 'modal' | 'home_intro' | 'home_offers' | 'home_favorites';
 type Campaign = {
   id: string;
-  placement: 'announcement' | 'hero' | 'banner' | 'modal' | 'home_intro' | 'home_offers' | 'home_favorites';
+  placement: Placement;
   title: string;
   body: string | null;
   image_path: string | null;
@@ -14,55 +15,96 @@ type Campaign = {
   image_contains_copy: boolean;
   active: boolean;
 };
-
 type FormState = {
-  placement: Campaign['placement']; title: string; body: string; imagePath: string; linkUrl: string;
-  startsAt: string; endsAt: string; priority: number; imageContainsCopy: boolean; active: boolean;
+  placement: Placement;
+  title: string;
+  body: string;
+  imagePath: string;
+  linkUrl: string;
+  startsAt: string;
+  endsAt: string;
+  priority: number;
+  imageContainsCopy: boolean;
+  active: boolean;
 };
 
+const placementNames: Record<Placement, string> = {
+  hero: 'Carrusel principal',
+  home_intro: 'Banner bajo el carrusel',
+  home_offers: 'Banner después de ofertas',
+  home_favorites: 'Banner después de favoritos',
+  banner: 'Banner general',
+  modal: 'Ventana emergente',
+  announcement: 'Aviso superior',
+};
+const placementHelp: Record<Placement, string> = {
+  hero: 'Imagen principal rotativa de la portada. Formato recomendado 5:1.',
+  home_intro: 'Franja promocional ubicada justo debajo del carrusel.',
+  home_offers: 'Franja que acompaña la sección de productos en oferta.',
+  home_favorites: 'Franja que aparece después de los productos favoritos.',
+  banner: 'Banner reutilizable para otras páginas o secciones.',
+  modal: 'Contenido destacado que se abre sobre la tienda.',
+  announcement: 'Mensaje breve para la franja superior del sitio.',
+};
+const blankCampaign = (): FormState => ({
+  placement: 'hero', title: '', body: '', imagePath: '', linkUrl: '', startsAt: '', endsAt: '', priority: 50, imageContainsCopy: true, active: true,
+});
 const toForm = (campaign: Campaign): FormState => ({
-  placement: campaign.placement, title: campaign.title, body: campaign.body ?? '', imagePath: campaign.image_path ?? '', linkUrl: campaign.link_url ?? '',
-  startsAt: campaign.starts_at ? campaign.starts_at.slice(0, 16) : '', endsAt: campaign.ends_at ? campaign.ends_at.slice(0, 16) : '',
-  priority: campaign.priority, imageContainsCopy: campaign.image_contains_copy, active: campaign.active,
+  placement: campaign.placement,
+  title: campaign.title,
+  body: campaign.body ?? '',
+  imagePath: campaign.image_path ?? '',
+  linkUrl: campaign.link_url ?? '',
+  startsAt: campaign.starts_at ? campaign.starts_at.slice(0, 16) : '',
+  endsAt: campaign.ends_at ? campaign.ends_at.slice(0, 16) : '',
+  priority: campaign.priority,
+  imageContainsCopy: campaign.image_contains_copy,
+  active: campaign.active,
 });
 
-export function CampaignManager({ apiUrl, supabaseUrl, anonKey }: { apiUrl: string; supabaseUrl: string; anonKey: string }) {
+export function CampaignManager({ apiUrl, storeUrl }: { apiUrl: string; storeUrl: string }) {
   const [token, setToken] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [selectedId, setSelectedId] = useState('');
   const [form, setForm] = useState<FormState | null>(null);
-  const [message, setMessage] = useState('Inicia sesión para editar las campañas.');
+  const [message, setMessage] = useState('Verificando campañas…');
   const [busy, setBusy] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
-  const selectCampaign = (campaign: Campaign) => { setSelectedId(campaign.id); setForm(toForm(campaign)); };
-  const loadCampaigns = async (accessToken: string) => {
+  const selectCampaign = (campaign: Campaign) => {
+    setSelectedId(campaign.id);
+    setForm(toForm(campaign));
+    setImageError(false);
+  };
+  const resolveImage = (path: string) => {
+    if (!path) return '';
+    if (/^https?:\/\//i.test(path)) return path;
+    return `${storeUrl.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
+  };
+  const loadCampaigns = async (accessToken: string, preferredId?: string) => {
     const response = await fetch(`${apiUrl}/admin/campaigns`, { headers: { Authorization: `Bearer ${accessToken}` } });
     const payload = await response.json() as { data?: Campaign[]; error?: string };
     if (!response.ok || !payload.data) throw new Error(payload.error ?? 'No fue posible cargar las campañas.');
     setCampaigns(payload.data);
-    const selected = payload.data.find((campaign) => campaign.id === selectedId) ?? payload.data[0];
+    const selected = payload.data.find((campaign) => campaign.id === (preferredId ?? selectedId)) ?? payload.data[0];
     if (selected) selectCampaign(selected);
+    else { setSelectedId(''); setForm(blankCampaign()); }
   };
 
   useEffect(() => {
-    restoreAdminToken().then(async (savedToken) => { setToken(savedToken); try { await loadCampaigns(savedToken); setMessage('Sesión activa. Puedes editar y publicar la campaña.'); } catch { setMessage('No fue posible conectar con la API. Verifica que esté levantada en el puerto 8787.'); } }).catch(() => { window.location.assign('/login'); });
+    restoreAdminToken().then(async (savedToken) => {
+      setToken(savedToken);
+      try { await loadCampaigns(savedToken); setMessage('Campañas cargadas. Selecciona una para editarla.'); }
+      catch { setMessage('No fue posible conectar con la API. Verifica que esté levantada en el puerto 8787.'); }
+    }).catch(() => { window.location.assign('/login'); });
   }, []);
 
-  const login = async (event: SyntheticEvent<HTMLFormElement>) => {
-    event.preventDefault(); setBusy(true); setMessage('Validando acceso…');
-    try {
-      const response = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
-        method: 'POST', headers: { apikey: anonKey, 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }),
-      });
-      const payload = await response.json() as { access_token?: string; error_description?: string };
-      if (!response.ok || !payload.access_token) throw new Error(payload.error_description ?? 'No se pudo iniciar sesión.');
-      window.sessionStorage.setItem('superemporio-admin-token', payload.access_token); setToken(payload.access_token); await loadCampaigns(payload.access_token); setPassword(''); setMessage('Sesión activa. Puedes editar y publicar la campaña.');
-    } catch (error) { setMessage(error instanceof Error ? error.message : 'No se pudo iniciar sesión.'); }
-    finally { setBusy(false); }
+  const startNewCampaign = () => {
+    setSelectedId('');
+    setForm(blankCampaign());
+    setImageError(false);
+    setMessage('Nueva campaña. Completa los datos y guarda para publicarla.');
   };
-
   const uploadImage = async (file?: File) => {
     if (!file || !token) return;
     setBusy(true); setMessage('Subiendo imagen…');
@@ -71,30 +113,95 @@ export function CampaignManager({ apiUrl, supabaseUrl, anonKey }: { apiUrl: stri
       const response = await fetch(`${apiUrl}/admin/campaign-assets`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: data });
       const payload = await response.json() as { data?: { publicUrl: string }; error?: string };
       if (!response.ok || !payload.data) throw new Error(payload.error ?? 'No se pudo subir la imagen.');
-      setForm((current) => current ? { ...current, imagePath: payload.data!.publicUrl } : current); setMessage('Imagen cargada. Guarda la campaña para publicarla.');
+      setForm((current) => current ? { ...current, imagePath: payload.data!.publicUrl } : current);
+      setImageError(false);
+      setMessage('Imagen cargada. Revisa la vista previa y guarda la campaña.');
     } catch (error) { setMessage(error instanceof Error ? error.message : 'No se pudo subir la imagen.'); }
     finally { setBusy(false); }
   };
-
   const saveCampaign = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault(); if (!token || !form) return;
+    if (form.startsAt && form.endsAt && new Date(form.endsAt) <= new Date(form.startsAt)) { setMessage('La fecha de término debe ser posterior al inicio.'); return; }
     setBusy(true); setMessage('Guardando campaña…');
-    const body = { ...form, body: form.body || null, imagePath: form.imagePath || null, linkUrl: form.linkUrl || null, startsAt: form.startsAt ? new Date(form.startsAt).toISOString() : null, endsAt: form.endsAt ? new Date(form.endsAt).toISOString() : null };
+    const body = {
+      ...form,
+      body: form.body || null,
+      imagePath: form.imagePath || null,
+      linkUrl: form.linkUrl || null,
+      startsAt: form.startsAt ? new Date(form.startsAt).toISOString() : null,
+      endsAt: form.endsAt ? new Date(form.endsAt).toISOString() : null,
+    };
     try {
-      const response = await fetch(`${apiUrl}/admin/campaigns${selectedId ? `/${selectedId}` : ''}`, { method: selectedId ? 'PUT' : 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const response = await fetch(`${apiUrl}/admin/campaigns${selectedId ? `/${selectedId}` : ''}`, {
+        method: selectedId ? 'PUT' : 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
       const payload = await response.json() as { data?: Campaign; error?: string };
       if (!response.ok || !payload.data) throw new Error(payload.error ?? 'No se pudo guardar la campaña.');
-      await loadCampaigns(token); setMessage('Campaña guardada. La portada se actualizará en su próxima carga.');
+      await loadCampaigns(token, payload.data.id);
+      setMessage('Campaña guardada correctamente. La tienda mostrará el cambio en su próxima carga.');
     } catch (error) { setMessage(error instanceof Error ? error.message : 'No se pudo guardar la campaña.'); }
     finally { setBusy(false); }
   };
 
   if (!token) return <section className="panel"><h2>Verificando acceso…</h2><p className="campaign-help">Estamos validando tu sesión protegida.</p></section>;
+  const previewUrl = form ? resolveImage(form.imagePath) : '';
 
-  const placementNames: Record<Campaign['placement'], string> = {
-    hero: 'Carrusel principal', home_intro: 'Banner bajo carrusel', home_offers: 'Banner después de ofertas',
-    home_favorites: 'Banner después de favoritos', banner: 'Banner general', modal: 'Modal', announcement: 'Aviso superior',
-  };
+  return <div className="campaign-admin">
+    <section className="campaign-admin__intro">
+      <div><span>CONTENIDO DE LA TIENDA</span><h2>Campañas e imágenes</h2><p>Selecciona una pieza, comprueba cómo se verá y publica solo cuando esté lista.</p></div>
+      <div><button className="admin-button admin-button--soft" type="button" onClick={() => { void closeAdminSession(); }}>Cerrar sesión</button><button className="admin-button" type="button" onClick={startNewCampaign}>+ Nueva campaña</button></div>
+    </section>
 
-  return <><section className="panel campaign-current"><div><span className="status">Sesión protegida</span><h2>Imágenes y campañas del sitio</h2><p>Cada ubicación corresponde a una sección visible de la tienda. Edita su texto, imagen, enlace, vigencia y prioridad.</p></div>{form?.imagePath && <img src={form.imagePath} alt="Vista previa de campaña" />}</section><section className="panel"><div className="panel-head"><div><h2>Editor por sección</h2><p className="campaign-help">Las imágenes principales del home se administran desde aquí y cada cambio queda en auditoría.</p></div><select aria-label="Seleccionar campaña" value={selectedId} onChange={(event) => { if (!event.target.value) { setSelectedId(''); setForm({ placement: 'hero', title: '', body: '', imagePath: '', linkUrl: '', startsAt: '', endsAt: '', priority: 0, imageContainsCopy: false, active: true }); return; } const campaign = campaigns.find((item) => item.id === event.target.value); if (campaign) selectCampaign(campaign); }}><option value="">Nueva campaña</option>{campaigns.map((campaign) => <option key={campaign.id} value={campaign.id}>{placementNames[campaign.placement]} · {campaign.title}</option>)}</select></div>{form && <form className="campaign-form" onSubmit={saveCampaign}><label>Sección del sitio<select value={form.placement} onChange={(event) => setForm({ ...form, placement: event.target.value as FormState['placement'] })}><option value="hero">Carrusel principal</option><option value="home_intro">Banner bajo carrusel</option><option value="home_offers">Banner después de ofertas</option><option value="home_favorites">Banner después de favoritos</option><option value="banner">Banner general</option><option value="modal">Modal</option><option value="announcement">Aviso superior</option></select></label><label>Prioridad<input type="number" value={form.priority} onChange={(event) => setForm({ ...form, priority: Number(event.target.value) })} /></label><label className="campaign-form__full">Título<input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} required /></label><label className="campaign-form__full">Mensaje<textarea value={form.body} onChange={(event) => setForm({ ...form, body: event.target.value })} /></label><label className="campaign-form__full">Enlace de destino<input value={form.linkUrl} placeholder="/catalogo?categoria=ofertas" onChange={(event) => setForm({ ...form, linkUrl: event.target.value })} /></label><label className="campaign-form__full">Imagen<input type="text" value={form.imagePath} placeholder="https://… o /campaigns/…" onChange={(event) => setForm({ ...form, imagePath: event.target.value })} /><small>Recomendado: carrusel 5:1 o banner 8:1, JPG, PNG o WebP de hasta 5 MB.</small><input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => uploadImage(event.target.files?.[0])} /></label><label className="campaign-form__full"><input type="checkbox" checked={form.imageContainsCopy} onChange={(event) => setForm({ ...form, imageContainsCopy: event.target.checked })} /> La imagen ya incluye sus textos y llamados; no superponer texto HTML.</label><label>Inicio<input type="datetime-local" value={form.startsAt} onChange={(event) => setForm({ ...form, startsAt: event.target.value })} /></label><label>Fin<input type="datetime-local" value={form.endsAt} onChange={(event) => setForm({ ...form, endsAt: event.target.value })} /></label><label className="campaign-form__full"><input type="checkbox" checked={form.active} onChange={(event) => setForm({ ...form, active: event.target.checked })} /> Campaña activa</label><button className="admin-button" disabled={busy}>{busy ? 'Guardando…' : 'Guardar campaña'}</button></form>}<p className="campaign-message">{message}</p></section><button className="admin-button admin-button--soft" onClick={() => { void closeAdminSession(); }}>Cerrar sesión</button></>;
+    <div className="campaign-workspace">
+      <aside className="campaign-list" aria-label="Campañas existentes">
+        <header><strong>Campañas</strong><span>{campaigns.length} en total</span></header>
+        <div>{campaigns.map((campaign) => <button type="button" key={campaign.id} data-selected={campaign.id === selectedId} onClick={() => selectCampaign(campaign)}>
+          <span>{placementNames[campaign.placement]}</span><strong>{campaign.title}</strong><small data-active={campaign.active}>{campaign.active ? 'Publicada' : 'Inactiva'} · prioridad {campaign.priority}</small>
+        </button>)}</div>
+      </aside>
+
+      {form && <form className="campaign-editor" onSubmit={saveCampaign}>
+        <section className="campaign-preview" data-placement={form.placement}>
+          <header><div><span>VISTA PREVIA</span><strong>{placementNames[form.placement]}</strong></div><a href={form.linkUrl || undefined} target="_blank" rel="noreferrer" aria-disabled={!form.linkUrl}>Probar enlace ↗</a></header>
+          <div className="campaign-preview__media">
+            {previewUrl && !imageError ? <img src={previewUrl} alt={form.title || 'Vista previa de campaña'} onError={() => setImageError(true)} /> : <div className="campaign-preview__empty"><span>▧</span><strong>{imageError ? 'No pudimos abrir esta imagen' : 'Aún no has seleccionado una imagen'}</strong><p>{imageError ? 'Revisa la ruta o sube nuevamente el archivo.' : 'Sube un JPG, PNG o WebP para verla aquí.'}</p></div>}
+          </div>
+        </section>
+
+        <section className="campaign-editor__section">
+          <header><span>1</span><div><h3>Ubicación y orden</h3><p>Define dónde aparecerá esta pieza dentro de la tienda.</p></div></header>
+          <div className="campaign-editor__grid">
+            <label>Sección del sitio<select value={form.placement} onChange={(event) => setForm({ ...form, placement: event.target.value as Placement })}>{Object.entries(placementNames).map(([value, name]) => <option key={value} value={value}>{name}</option>)}</select><small>{placementHelp[form.placement]}</small></label>
+            <label>Prioridad de aparición<input type="number" min="-100" max="100" value={form.priority} onChange={(event) => setForm({ ...form, priority: Number(event.target.value) })} /><small>Las campañas con un número mayor se muestran primero.</small></label>
+          </div>
+        </section>
+
+        <section className="campaign-editor__section">
+          <header><span>2</span><div><h3>Contenido y destino</h3><p>Estos datos ayudan a identificar la campaña y dirigir al cliente.</p></div></header>
+          <div className="campaign-editor__grid">
+            <label className="campaign-editor__full">Nombre interno de la campaña<input value={form.title} placeholder="Ej: Lunes de ahorro · 5%" onChange={(event) => setForm({ ...form, title: event.target.value })} required /><small>Se usa también como descripción accesible de la imagen.</small></label>
+            <label className="campaign-editor__full">Descripción interna<textarea value={form.body} placeholder="Resume la oferta y sus condiciones." onChange={(event) => setForm({ ...form, body: event.target.value })} /></label>
+            <label className="campaign-editor__full">Enlace al hacer clic<input value={form.linkUrl} placeholder="/catalogo o /productos/nombre-del-producto" onChange={(event) => setForm({ ...form, linkUrl: event.target.value })} /><small>Puedes usar una ruta de la tienda o una URL completa.</small></label>
+          </div>
+        </section>
+
+        <section className="campaign-editor__section">
+          <header><span>3</span><div><h3>Imagen promocional</h3><p>Sube una pieza lista para publicar y comprueba su vista previa.</p></div></header>
+          <label className="campaign-upload"><input type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={(event) => { void uploadImage(event.target.files?.[0]); }} /><span>↑</span><strong>{busy ? 'Procesando imagen…' : 'Seleccionar imagen'}</strong><small>JPG, PNG o WebP · máximo 5 MB · carrusel 5:1 o franja 8:1</small></label>
+          <label className="campaign-path">Ruta o URL actual<input type="text" value={form.imagePath} placeholder="https://… o /campaigns/…" onChange={(event) => { setForm({ ...form, imagePath: event.target.value }); setImageError(false); }} /></label>
+          <label className="campaign-switch"><input type="checkbox" checked={form.imageContainsCopy} onChange={(event) => setForm({ ...form, imageContainsCopy: event.target.checked })} /><span aria-hidden="true"></span><div><strong>La imagen ya incluye sus textos</strong><small>Actívalo cuando títulos, precios y llamados estén incorporados dentro del diseño.</small></div></label>
+        </section>
+
+        <section className="campaign-editor__section">
+          <header><span>4</span><div><h3>Publicación</h3><p>Controla la vigencia y decide si la campaña está visible.</p></div></header>
+          <div className="campaign-editor__grid"><label>Fecha de inicio <em>opcional</em><input type="datetime-local" value={form.startsAt} onChange={(event) => setForm({ ...form, startsAt: event.target.value })} /><small>Sin fecha, puede mostrarse inmediatamente.</small></label><label>Fecha de término <em>opcional</em><input type="datetime-local" value={form.endsAt} onChange={(event) => setForm({ ...form, endsAt: event.target.value })} /><small>Sin fecha, seguirá vigente hasta que la desactives.</small></label></div>
+          <label className="campaign-switch campaign-switch--publish"><input type="checkbox" checked={form.active} onChange={(event) => setForm({ ...form, active: event.target.checked })} /><span aria-hidden="true"></span><div><strong>Campaña visible en la tienda</strong><small>{form.active ? 'Está habilitada; se mostrará si está dentro de sus fechas.' : 'Está guardada, pero los clientes no la verán.'}</small></div></label>
+        </section>
+
+        <footer className="campaign-editor__actions"><p className="campaign-message" role="status">{message}</p><button className="admin-button" disabled={busy}>{busy ? 'Guardando cambios…' : selectedId ? 'Guardar cambios' : 'Crear campaña'}</button></footer>
+      </form>}
+    </div>
+  </div>;
 }

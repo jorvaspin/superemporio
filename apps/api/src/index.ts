@@ -427,7 +427,7 @@ app.put('/admin/categories/:id', zValidator('json', categorySchema.partial()), a
 });
 app.get('/admin/products', async (context) => {
   if (!await requireAdmin(context)) return context.json({ error: 'UNAUTHORIZED' }, 401);
-  const { data, error } = await createAdminClient(context.env).from('products').select('*,product_categories(category_id),product_variants(*,inventory(*))').order('updated_at', { ascending: false });
+  const { data, error } = await createAdminClient(context.env).from('products').select('*,product_categories(category_id),product_variants(*,inventory(*)),product_images(id,storage_path,alt_text,position)').order('updated_at', { ascending: false });
   return error ? context.json({ error: 'PRODUCTS_UNAVAILABLE' }, 503) : context.json({ data });
 });
 app.post('/admin/products', zValidator('json', productWriteSchema), async (context) => {
@@ -442,6 +442,17 @@ app.put('/admin/products/:id', zValidator('json', productWriteSchema), async (co
   const { data: product, error } = await database.rpc('admin_upsert_product', { p_product_id: id.data, p_payload: input });
   if (error || !product) return context.json({ error: 'PRODUCT_UPDATE_FAILED' }, 422);
   await audit(context, admin, 'update', 'product', id.data, old, { name: product.name, status: product.status, variants: input.variants.length }); return context.json({ data: product });
+});
+app.delete('/admin/products/:id', async (context) => {
+  const admin = await requireAdmin(context); if (!admin) return context.json({ error: 'UNAUTHORIZED' }, 401);
+  const id = z.string().uuid().safeParse(context.req.param('id')); if (!id.success) return context.json({ error: 'INVALID_PRODUCT' }, 422);
+  const database = createAdminClient(context.env);
+  const { data: old } = await database.from('products').select('id,name,status').eq('id', id.data).maybeSingle();
+  if (!old) return context.json({ error: 'PRODUCT_NOT_FOUND' }, 404);
+  const { data, error } = await database.from('products').update({ status: 'archived' }).eq('id', id.data).select('id,name,status').single();
+  if (error) return context.json({ error: 'PRODUCT_ARCHIVE_FAILED' }, 422);
+  await audit(context, admin, 'archive', 'product', id.data, old, data);
+  return context.json({ data });
 });
 app.get('/admin/orders', async (context) => {
   if (!await requireAdmin(context)) return context.json({ error: 'UNAUTHORIZED' }, 401);
