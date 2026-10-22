@@ -270,11 +270,14 @@ body.category-drawer-open { overflow: hidden; }
 .category-drawer__footer strong { font-size: .8rem; }
 .category-drawer__footer small { color: #738079; font-size: .67rem; margin-top: .12rem; }
 
-.home-campaigns { background: #fff; padding: 1rem 0 .55rem; }
-.home-campaigns .hero-carousel { border-radius: 1.15rem; height: clamp(255px, 20.3vw, 300px); min-height: 0; }
+.home-campaigns { background: #fff; padding: 1rem 0 .85rem; }
+.home-campaigns .hero-carousel { border-radius: 1.15rem; height: clamp(255px, 20.3vw, 300px); margin-bottom: 2.15rem; min-height: 0; overflow: visible; }
 .home-campaigns .hero-carousel__grid { height: 100%; min-height: 0; padding: 1.35rem clamp(3.5rem, 6vw, 6rem); }
-.home-campaigns .hero-carousel__slide { border-radius: 1rem; }
+.home-campaigns .hero-carousel__slide { border-radius: 1rem; overflow: hidden; }
 .home-campaigns .hero-carousel__slide--artwork { background-image: var(--hero-image); background-size: 100% 100%; }
+.home-campaigns .hero-carousel__dots { bottom: -1.35rem; }
+.home-campaigns .hero-carousel__dots button { background: #d4dadd; }
+.home-campaigns .hero-carousel__dots button[aria-selected='true'] { background: var(--brand-green); }
 .hero-carousel__artwork-link { inset: 0; position: absolute; z-index: 2; }
 .home-campaigns .hero-carousel__copy { align-self: center; }
 .home-campaigns .hero-carousel h1 { font-size: clamp(2.15rem, 3.2vw, 3.25rem); margin-bottom: .45rem; max-width: 11ch; }
@@ -284,7 +287,7 @@ body.category-drawer-open { overflow: hidden; }
 .home-campaigns .hero-actions .button { min-height: 38px; padding: .48rem .85rem; }
 .home-campaigns .hero-link { font-size: .75rem; }
 .home-banner-section { background: #fff; padding: .55rem 0 1rem; }
-.home-banner-section--intro { padding-top: 0; }
+.home-banner-section--intro { padding-top: .35rem; }
 .home-banner-section--care { padding-bottom: 3rem; }
 .marketing-banner { background-color: #07150c; background-image: linear-gradient(90deg, rgba(3,12,7,.98), rgba(3,47,23,.82) 35%, rgba(3,47,23,.08) 68%), var(--marketing-image); background-position: center; background-repeat: no-repeat; background-size: cover; border-radius: 1rem; color: #fff; display: flex; height: clamp(135px, 10.5vw, 160px); min-height: 0; overflow: hidden; padding: 1rem clamp(2rem, 4.5vw, 4.2rem); position: relative; }
 .marketing-banner::after { border: 1px solid rgba(255,255,255,.15); border-radius: inherit; content: ''; inset: 0; pointer-events: none; position: absolute; }
