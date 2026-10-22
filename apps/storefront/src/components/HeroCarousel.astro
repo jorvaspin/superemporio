@@ -11,8 +11,9 @@ type HeroCampaign = {
 
 interface Props { campaigns: HeroCampaign[]; }
 const { campaigns } = Astro.props;
+const artworkOnly = campaigns.every((campaign) => campaign.artworkOnly);
 ---
-<section class="hero-carousel" data-hero-carousel aria-roledescription="carrusel" aria-label="Ofertas destacadas">
+<section class:list={['hero-carousel', { 'hero-carousel--artwork-only': artworkOnly }]} data-hero-carousel aria-roledescription="carrusel" aria-label="Ofertas destacadas">
   {campaigns.map((campaign, index) => <article class:list={['hero-carousel__slide', { 'hero-carousel__slide--artwork': campaign.artworkOnly }]} data-hero-slide data-active={index === 0 ? 'true' : 'false'} aria-hidden={index === 0 ? 'false' : 'true'} inert={index === 0 ? undefined : true} style={`--hero-image: url('${campaign.imagePath}')`}>
     {campaign.artworkOnly ? <a class="hero-carousel__artwork-link" href={campaign.linkUrl}><span class="sr-only">{campaign.title}. {campaign.body}</span></a> : <div class="container hero-carousel__grid">
       <div class="hero-carousel__copy">
